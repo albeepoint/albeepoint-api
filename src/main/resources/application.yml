@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: albeepoint-api
+  datasource:
+    url: jdbc:mariadb://albeesoft.cafe24.com:3306/albeepoint
+    username: root
+    password: dba3048!01
+    driver-class-name: org.mariadb.jdbc.Driver
+
+server:
+  port: 8120
+
+mybatis:
+  mapper-locations: classpath*:com/albee/albeepoint/mapper/**/*.xml
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  level:
+    root: INFO
+    org.mybatis: DEBUG
+    com.albee.albeepoint: DEBUG
