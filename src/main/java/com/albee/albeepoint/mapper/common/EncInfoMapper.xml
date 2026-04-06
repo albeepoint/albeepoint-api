@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.albee.albeepoint.mapper.common.EncInfoMapper">
+
+    <select id="selectEncInfoListTotalCnt" 
+        parameterType="com.albee.albeepoint.api.common.dto.EncInfoSearchDto"  
+        resultType="Long">
+        SELECT
+        COUNT(*)
+        FROM T_ENC_INFO
+        WHERE 1 = 1
+        <if test = 'targetGbCd  != null and targetGbCd != ""'>
+            AND TARGET_GB_CD = #{targetGbCd}
+        </if>
+        <if test = 'targetVal  != null and targetVal != ""'>
+            AND TARGET_VAL = #{targetVal}
+        </if>
+    </select>
+
+    <select id="selectEncInfoList" 
+        parameterType="com.albee.albeepoint.api.common.dto.EncInfoSearchDto"  
+        resultType="com.albee.albeepoint.api.common.dto.EncInfoDto">
+        SELECT
+        T.ROW_NUM AS ROW_NUM
+        ,T.*
+        FROM
+        (
+        SELECT
+        ROW_NUMBER() OVER(ORDER BY TARGET_GB_CD, TARGET_VAL) ROW_NUM
+        ,TARGET_GB_CD
+        ,TARGET_VAL
+        ,ENC_KEY
+        ,SALT_VAL
+        ,ENC_STS_CD
+        ,REG_USER_ID
+        ,REG_DT
+        ,LAST_MOD_USER_ID
+        ,LAST_MOD_DT
+        FROM T_ENC_INFO
+        WHERE 1 = 1
+        <if test = 'targetGbCd  != null and targetGbCd != ""'>
+            AND TARGET_GB_CD = #{targetGbCd}
+        </if>
+        <if test = 'targetVal  != null and targetVal != ""'>
+            AND TARGET_VAL = #{targetVal}
+        </if>
+        ORDER BY TARGET_GB_CD, TARGET_VAL
+        ) T
+        <if test = 'startIndex != null and endIndex != null '>
+            WHERE T.ROW_NUM BETWEEN #{startIndex} AND #{endIndex}
+        </if>
+    </select>
+</mapper>

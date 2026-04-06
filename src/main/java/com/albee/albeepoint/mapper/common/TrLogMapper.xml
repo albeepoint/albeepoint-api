@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.albee.albeepoint.mapper.common.TrLogMapper">
+
+    <select id="selectTrLogListTotalCnt" 
+        parameterType="com.albee.albeepoint.api.common.dto.TrLogSearchDto"  
+        resultType="java.lang.Long">
+         SELECT 
+             COUNT(*) 
+        FROM T_TR_LOG
+       WHERE 1 = 1 
+       <if test = 'trDt  != null and trDt != ""'>
+           AND TR_DT = #{trDt}
+       </if>
+       <if test = 'trId  != null and trId != ""'>
+           AND TR_ID = #{trId}
+       </if>
+    </select>
+
+    <select id="selectTrLogList" 
+        parameterType="com.albee.albeepoint.api.common.dto.TrLogSearchDto"  
+        resultType="com.albee.albeepoint.api.common.dto.TrLogDto">
+         SELECT 
+             T.ROW_NUM AS ROW_NUM 
+             ,T.* 
+         FROM 
+         ( 
+         SELECT 
+             ROW_NUMBER() OVER(ORDER BY TR_DT, TR_ID) ROW_NUM
+               ,TR_DT
+               ,TR_ID
+               ,TR_GB
+                ,MEMBER_ID_ENC
+               ,CONT_NO
+               ,ORG_CD
+               ,BRCH_CD
+               ,IP_ADDR
+               ,REQ_DT
+               ,RES_DT
+               ,REQ_CONTENT
+               ,RES_CONTENT
+        FROM T_TR_LOG
+       WHERE 1 = 1 
+       <if test = 'trDt  != null and trDt != ""'>
+           AND TR_DT = #{trDt}
+       </if>
+       <if test = 'trId  != null and trId != ""'>
+           AND TR_ID = #{trId}
+       </if>
+        ORDER BY TR_DT, TR_ID
+       ) T 
+       <if test = 'startIndex != null and endIndex != null '> 
+       WHERE T.ROW_NUM BETWEEN #{startIndex} AND #{endIndex} 
+       </if> 
+    </select>
+</mapper>

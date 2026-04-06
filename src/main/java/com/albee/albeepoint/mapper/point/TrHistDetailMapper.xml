@@ -1,0 +1,520 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.albeepoint.core.biz.point.repository.TrHistDetailMapper">
+
+    <insert id="insertIsuCancelMultiTrHistDetail" 
+        parameterType="com.albee.albeepoint.api.point.dto.TrHistDetailListRegReqDto">
+        INSERT INTO T_TR_HIST_DETAIL
+        (
+            TR_SNO
+            ,TR_SEQ
+            ,CONT_NO
+            ,MEMBER_NO
+            ,PT_NO
+            ,MEMBER_PT_NO
+            ,TR_DT
+            ,TR_GB_CD
+            ,TR_METHOD_GB_CD
+            ,TR_PT
+            ,BEF_BAL_PT
+            ,AFR_BAL_PT
+            ,CONT_BEF_BAL_PT
+            ,CONT_AFR_BAL_PT
+            ,ORGL_TR_SNO
+            ,REG_USER_ID
+            ,REG_DT
+            ,LAST_MOD_USER_ID
+            ,LAST_MOD_DT
+        )
+        SELECT
+            TR_SNO
+            ,TR_SEQ
+            ,CONT_NO
+            ,MEMBER_NO
+            ,PT_NO
+            ,MEMBER_PT_NO
+            ,TR_DT
+            ,TR_GB_CD
+            ,TR_METHOD_GB_CD
+            ,TR_PT
+            ,BEF_BAL_PT
+            ,AFR_BAL_PT
+            ,CONT_BEF_BAL_PT
+            ,CONT_AFR_BAL_PT
+            ,ORGL_TR_SNO
+            ,REG_USER_ID
+            ,REG_DT
+            ,LAST_MOD_USER_ID
+            ,LAST_MOD_DT
+        FROM (SELECT @num:=0) AS n,
+        (
+            <foreach collection="isuCancelTargetList" item="ut" index="index" separator=" UNION ALL " open="(" close=")">
+                SELECT #{trSno} AS TR_SNO
+                , @num:=@num+1 AS TR_SEQ
+                , #{ut.contNo} AS CONT_NO
+                , #{memberNo} AS MEMBER_NO
+                , #{ut.ptNo} AS PT_NO
+                , #{ut.memberPtNo} AS MEMBER_PT_NO
+                , CURRENT_TIMESTAMP(6) AS TR_DT
+                , 'SC01' AS TR_GB_CD
+                , 'ONLINE' AS TR_METHOD_GB_CD
+                , #{ut.isuCancelReqPt} AS TR_PT
+                , #{ut.balPt} AS BEF_BAL_PT
+                , #{ut.balPt} - #{ut.isuCancelReqPt} AS AFR_BAL_PT
+                , #{ut.contBalPt} AS CONT_BEF_BAL_PT
+                , #{ut.contBalPt} - #{ut.isuCancelReqPt} AS CONT_AFR_BAL_PT
+                , #{ut.orglTrSno} AS ORGL_TR_SNO
+                ,#{regUserId, jdbcType=VARCHAR} AS REG_USER_ID
+                , CURRENT_TIMESTAMP(6) AS REG_DT
+                ,#{lastModUserId, jdbcType=VARCHAR} AS LAST_MOD_USER_ID
+                ,CURRENT_TIMESTAMP(6) AS LAST_MOD_DT
+            </foreach>
+        ) AS a
+    </insert>
+
+    <insert id="insertUseMultiTrHistDetail" 
+        parameterType="com.albee.albeepoint.api.point.dto.TrHistDetailListRegReqDto">
+        INSERT INTO T_TR_HIST_DETAIL
+        (
+            TR_SNO
+            ,TR_SEQ
+            ,CONT_NO
+            ,MEMBER_NO
+            ,PT_NO
+            ,MEMBER_PT_NO
+            ,TR_DT
+            ,TR_GB_CD
+            ,TR_METHOD_GB_CD
+            ,TR_PT
+            ,BEF_BAL_PT
+            ,AFR_BAL_PT
+            ,CONT_BEF_BAL_PT
+            ,CONT_AFR_BAL_PT
+            ,ORGL_TR_SNO
+            ,REG_USER_ID
+            ,REG_DT
+            ,LAST_MOD_USER_ID
+            ,LAST_MOD_DT
+        )
+        SELECT
+            TR_SNO
+            ,TR_SEQ
+            ,CONT_NO
+            ,MEMBER_NO
+            ,PT_NO
+            ,MEMBER_PT_NO
+            ,TR_DT
+            ,TR_GB_CD
+            ,TR_METHOD_GB_CD
+            ,TR_PT
+            ,BEF_BAL_PT
+            ,AFR_BAL_PT
+            ,CONT_BEF_BAL_PT
+            ,CONT_AFR_BAL_PT
+            ,ORGL_TR_SNO
+            ,REG_USER_ID
+            ,REG_DT
+            ,LAST_MOD_USER_ID
+            ,LAST_MOD_DT
+        FROM
+        (
+            <foreach collection="useTargetList" item="ut" index="index" separator=" UNION ALL " open="(" close=")">
+            SELECT
+                #{trSno} AS TR_SNO
+                , #{ut.trSeq}  AS TR_SEQ
+                , #{ut.contNo} AS CONT_NO
+                , #{memberNo} AS MEMBER_NO
+                , #{ut.ptNo} AS PT_NO
+                , #{ut.memberPtNo} AS MEMBER_PT_NO
+                , CURRENT_TIMESTAMP(6) AS TR_DT
+                , 'U001' AS TR_GB_CD
+                , 'ONLINE' AS TR_METHOD_GB_CD
+                , #{ut.useReqPt} AS TR_PT
+                , #{ut.balPt} AS BEF_BAL_PT
+                , #{ut.balPt} - #{ut.useReqPt} AS AFR_BAL_PT
+                , #{ut.contBalPt} AS CONT_BEF_BAL_PT
+                , #{ut.contBalPt} - #{ut.useReqPt} AS CONT_AFR_BAL_PT
+                , null AS ORGL_TR_SNO
+                ,#{regUserId, jdbcType=VARCHAR} AS REG_USER_ID
+                , CURRENT_TIMESTAMP(6) AS REG_DT
+                ,#{lastModUserId, jdbcType=VARCHAR} AS LAST_MOD_USER_ID
+                ,CURRENT_TIMESTAMP(6) AS LAST_MOD_DT
+            </foreach>
+        ) AS a
+    </insert>
+
+    <insert id="insertUseCancelMultiTrHistDetail" 
+        parameterType="com.albee.albeepoint.api.point.dto.TrHistDetailListRegReqDto">
+        INSERT INTO T_TR_HIST_DETAIL
+        (
+            TR_SNO
+            ,TR_SEQ
+            ,CONT_NO
+            ,MEMBER_NO
+            ,PT_NO
+            ,MEMBER_PT_NO
+            ,TR_DT
+            ,TR_GB_CD
+            ,TR_METHOD_GB_CD
+            ,TR_PT
+            ,BEF_BAL_PT
+            ,AFR_BAL_PT
+            ,CONT_BEF_BAL_PT
+            ,CONT_AFR_BAL_PT
+            ,ORGL_TR_SNO
+            ,REG_USER_ID
+            ,REG_DT
+            ,LAST_MOD_USER_ID
+            ,LAST_MOD_DT
+        )
+        SELECT
+            TR_SNO
+            ,TR_SEQ
+            ,CONT_NO
+            ,MEMBER_NO
+            ,PT_NO
+            ,MEMBER_PT_NO
+            ,TR_DT
+            ,TR_GB_CD
+            ,TR_METHOD_GB_CD
+            ,TR_PT
+            ,BEF_BAL_PT
+            ,AFR_BAL_PT
+            ,CONT_BEF_BAL_PT
+            ,CONT_AFR_BAL_PT
+            ,ORGL_TR_SNO
+            ,REG_USER_ID
+            ,REG_DT
+            ,LAST_MOD_USER_ID
+            ,LAST_MOD_DT
+        FROM (SELECT @num:=0) AS n,
+        (
+        <foreach collection="useCancelTargetList" item="ut" index="index" separator=" UNION ALL " open="(" close=")">
+            SELECT
+                #{trSno} AS TR_SNO
+                , #{ut.trSeq} AS TR_SEQ
+                , #{ut.contNo} AS CONT_NO
+                , #{memberNo} AS MEMBER_NO
+                , #{ut.ptNo} AS PT_NO
+                , #{ut.memberPtNo} AS MEMBER_PT_NO
+                , CURRENT_TIMESTAMP(6) AS TR_DT
+                , 'UC01' AS TR_GB_CD
+                , 'ONLINE' AS TR_METHOD_GB_CD
+                , #{ut.useCancelReqPt} AS TR_PT
+                , #{ut.balPt} AS BEF_BAL_PT
+                , #{ut.balPt} + #{ut.useCancelReqPt} AS AFR_BAL_PT
+                , #{ut.contBalPt} AS CONT_BEF_BAL_PT
+                , #{ut.contBalPt} + #{ut.useCancelReqPt} AS CONT_AFR_BAL_PT
+                , #{ut.orglTrSno} AS ORGL_TR_SNO
+                ,#{regUserId, jdbcType=VARCHAR} AS REG_USER_ID
+                , CURRENT_TIMESTAMP(6) AS REG_DT
+                ,#{lastModUserId, jdbcType=VARCHAR} AS LAST_MOD_USER_ID
+                ,CURRENT_TIMESTAMP(6) AS LAST_MOD_DT
+        </foreach>
+        ) AS a
+    </insert>
+
+    <select id="selectTrHistDetail" 
+        parameterType="com.albee.albeepoint.api.point.dto.TrHistSearchDto" 
+        resultType="com.albee.albeepoint.api.point.dto.TrHistDetailDto">
+        SELECT
+              thd.TR_SNO
+             ,thd.TR_SEQ
+             ,thd.CONT_NO
+             ,thd.MEMBER_NO
+             ,AES_DECRYPT(FROM_BASE64(mm.MEMBER_ID_ENC) , ei.ENC_KEY) AS MEMBER_ID
+             ,thd.PT_NO
+             ,thd.MEMBER_PT_NO
+             ,thd.TR_DT
+             ,thd.TR_GB_CD
+             ,thd.TR_METHOD_GB_CD
+             ,thd.TR_PT
+             ,thd.BEF_BAL_PT
+             ,thd.AFR_BAL_PT
+             ,thd.CONT_BEF_BAL_PT
+             ,thd.CONT_AFR_BAL_PT
+             ,thd.ORGL_TR_SNO
+             ,thd.REG_USER_ID
+             ,thd.REG_DT
+             ,thd.LAST_MOD_USER_ID
+             ,thd.LAST_MOD_DT
+        FROM T_TR_HIST_DETAIL thd
+            INNER JOIN T_MEMBER_MST mm ON mm.MEMBER_NO = thd.MEMBER_NO
+            INNER JOIN T_ENC_INFO ei ON ei.TARGET_GB_CD = 'ORG' AND mm.ORG_NO = CONVERT (ei.TARGET_VAL, INT)
+            INNER JOIN T_TR_HIST th ON th.TR_SNO = thd.TR_SNO
+        WHERE 1 = 1
+            <if test = 'trSno  != null and trSno != ""'>
+                AND thd.TR_SNO = #{trSno}
+            </if>
+            <if test = 'ptNo  != null and ptNo != ""'>
+                AND thd.PT_NO = #{ptNo}
+            </if>
+            <if test = 'memberPtNo  != null and memberPtNo != ""'>
+                AND thd.MEMBER_PT_NO = #{memberPtNo}
+            </if>
+            <if test = 'orglTrSno  != null and orglTrSno != ""'>
+                AND thd.ORGL_TR_SNO = #{orglTrSno}
+            </if>
+            <if test = 'memberNo  != null and memberNo != ""'>
+                AND thd.MEMBER_NO = #{memberNo}
+            </if>
+            <if test = 'contNo  != null and contNo != ""'>
+                AND thd.CONT_NO = #{contNo}
+            </if>
+    </select>
+
+    <select id="selectLastOneTrHistDetail" 
+        parameterType="com.albee.albeepoint.api.point.dto.TrHistSearchDto" 
+        resultType="com.albee.albeepoint.api.point.dto.TrHistDetailDto">
+        SELECT
+            thd.TR_SNO
+           ,thd.TR_SEQ
+           ,thd.CONT_NO
+           ,thd.MEMBER_NO
+           ,AES_DECRYPT(FROM_BASE64(mm.MEMBER_ID_ENC) , ei.ENC_KEY) AS MEMBER_ID
+           ,thd.PT_NO
+           ,thd.MEMBER_PT_NO
+           ,thd.TR_DT
+           ,thd.TR_GB_CD
+           ,thd.TR_METHOD_GB_CD
+           ,thd.TR_PT
+           ,thd.BEF_BAL_PT
+           ,thd.AFR_BAL_PT
+           ,thd.CONT_BEF_BAL_PT
+           ,thd.CONT_AFR_BAL_PT
+           ,thd.ORGL_TR_SNO
+           ,thd.REG_USER_ID
+           ,thd.REG_DT
+           ,thd.LAST_MOD_USER_ID
+           ,thd.LAST_MOD_DT
+        FROM T_TR_HIST_DETAIL thd
+            INNER JOIN T_MEMBER_MST mm ON mm.MEMBER_NO = thd.MEMBER_NO
+            INNER JOIN T_ENC_INFO ei ON ei.TARGET_GB_CD = 'ORG' AND mm.ORG_NO = CONVERT (ei.TARGET_VAL, INT)
+        WHERE 1 = 1
+            <if test = 'trSno  != null and trSno != ""'>
+                AND thd.TR_SNO = #{trSno}
+            </if>
+            <if test = 'orglTrSno  != null and orglTrSno != ""'>
+                AND thd.ORGL_TR_SNO = #{orglTrSno}
+            </if>
+            <if test = 'memberNo  != null and memberNo != ""'>
+                AND thd.MEMBER_NO = #{memberNo}
+            </if>
+            <if test = 'contNo  != null and contNo != ""'>
+                AND thd.CONT_NO = #{contNo}
+            </if>
+            <if test = 'ptNo  != null and ptNo != ""'>
+                AND thd.PT_NO = #{ptNo}
+            </if>
+            <if test = 'memberPtNo  != null and memberPtNo != ""'>
+                AND thd.MEMBER_PT_NO = #{memberPtNo}
+            </if>
+            <if test = 'trGbCd  != null and trGbCd != ""'>
+                AND thd.TR_GB_CD = #{trGbCd}
+            </if>
+            <if test = 'startDt != null and endDt != null '>
+                AND thd.TR_DT BETWEEN #{startDt} AND #{endDt}
+            </if>
+        ORDER BY thd.TR_DT DESC, thd.TR_SNO DESC, thd.TR_SEQ DESC
+        LIMIT 1
+    </select>
+
+    <select id="selectBaseIsuDtForMileage" 
+        parameterType="com.albee.albeepoint.api.point.dto.TrHistSearchDto" 
+        resultType="com.albee.albeepoint.api.point.dto.TrHistDetailDto">
+        SELECT
+            thd.TR_DT
+        FROM T_TR_HIST_DETAIL thd
+            INNER JOIN T_CONT_MST cm ON cm.CONT_NO = thd.CONT_NO AND cm.PT_TYPE_CD = 'MILEAGE'
+        WHERE thd.MEMBER_NO = #{memberNo}
+        AND thd.CONT_NO = #{contNo}
+        AND thd.TR_GB_CD = 'S001'
+        AND thd.BEF_BAL_PT = 0
+        AND thd.TR_SNO <![CDATA[ < ]]> #{trSno}
+        ORDER BY thd.TR_SNO DESC
+        LIMIT 1
+    </select>
+
+
+    <select id="selectTrHistDetailIsuSum" 
+        parameterType="com.albee.albeepoint.api.point.dto.TrHistSearchDto"   
+        resultType="com.albee.albeepoint.api.point.dto.TrHistDetailSumDto">
+        SELECT
+            COALESCE(SUM(CASE WHEN thd.TR_GB_CD = 'S001' THEN thd.TR_PT ELSE 0 END), 0) AS ISU_SUM,
+            COALESCE(SUM(CASE WHEN thd.TR_GB_CD = 'SC01' THEN thd.TR_PT ELSE 0 END), 0) AS ISU_CANCEL_SUM,
+            COALESCE(SUM(CASE WHEN thd.TR_GB_CD = 'S001' THEN 1 ELSE 0 END), 0) AS ISU_CNT,
+            COALESCE(SUM(CASE WHEN thd.TR_GB_CD = 'SC01' THEN 1 ELSE 0 END), 0) AS ISU_CANCEL_CNT
+        FROM T_TR_HIST_DETAIL thd
+        WHERE thd.MEMBER_NO = #{memberNo}
+            <if test = 'contNo  != null and contNo != ""'>
+                AND thd.CONT_NO = #{contNo}
+            </if>
+            <if test = 'trSno  != null and trSno != ""'>
+                AND (thd.TR_SNO = #{trSno} OR thd.ORGL_TR_SNO = #{trSno})
+            </if>
+            <if test = 'startDt != null and endDt != null '>
+                AND thd.TR_DT BETWEEN #{startDt} AND #{endDt}
+            </if>
+    </select>
+
+    <select id="selectTrHistDetailUseSum" 
+        parameterType="com.albee.albeepoint.api.point.dto.TrHistSearchDto" 
+        resultType="com.albee.albeepoint.api.point.dto.TrHistDetailSumDto">
+        SELECT
+            COALESCE(SUM(CASE WHEN thd.TR_GB_CD = 'U001' THEN thd.TR_PT ELSE 0 END), 0) AS USE_SUM,
+            COALESCE(SUM(CASE WHEN thd.TR_GB_CD = 'UC01' THEN thd.TR_PT ELSE 0 END), 0) AS USE_CANCEL_SUM,
+            COALESCE(SUM(CASE WHEN thd.TR_GB_CD = 'U001' THEN 1 ELSE 0 END), 0) AS USE_CNT,
+            COALESCE(SUM(CASE WHEN thd.TR_GB_CD = 'UC01' THEN 1 ELSE 0 END), 0) AS USE_CANCEL_CNT
+        FROM T_TR_HIST_DETAIL thd
+        WHERE thd.MEMBER_NO = #{memberNo}
+            <if test = 'contNo  != null and contNo != ""'>
+                AND thd.CONT_NO = #{contNo}
+            </if>
+            <if test = 'trSno  != null and trSno != ""'>
+                AND (thd.TR_SNO = #{trSno} OR thd.ORGL_TR_SNO = #{trSno})
+            </if>
+            <if test = 'startDt != null and endDt != null '>
+                AND thd.TR_DT BETWEEN #{startDt} AND #{endDt}
+            </if>
+    </select>
+
+    <select id="selectTrHistDetailForTrTrace" 
+        parameterType="com.albee.albeepoint.api.point.dto.TrHistSearchDto" 
+        resultType="com.albee.albeepoint.api.point.dto.TrHistDetailDto">
+        SELECT
+            ROW_NUMBER() OVER(ORDER BY thd.TR_SNO DESC, thd.TR_SEQ DESC) ROW_NUM
+            ,thd.TR_SNO
+            ,thd.TR_SEQ
+            ,thd.CONT_NO
+            ,thd.MEMBER_NO
+            ,AES_DECRYPT(FROM_BASE64(mm.MEMBER_ID_ENC) , ei.ENC_KEY) AS MEMBER_ID
+            ,thd.PT_NO
+            ,thd.MEMBER_PT_NO
+            ,thd.TR_DT
+            ,thd.TR_GB_CD
+            ,thd.TR_METHOD_GB_CD
+            ,thd.TR_PT
+            ,thd.BEF_BAL_PT
+            ,thd.AFR_BAL_PT
+            ,thd.CONT_BEF_BAL_PT
+            ,thd.CONT_AFR_BAL_PT
+            ,thd.ORGL_TR_SNO
+            ,thd.REG_USER_ID
+            ,thd.REG_DT
+            ,thd.LAST_MOD_USER_ID
+            ,thd.LAST_MOD_DT
+        FROM T_TR_HIST_DETAIL thd
+            INNER JOIN T_MEMBER_MST mm ON mm.MEMBER_NO = thd.MEMBER_NO
+            INNER JOIN T_ENC_INFO ei ON ei.TARGET_GB_CD = 'ORG' AND mm.ORG_NO = CONVERT (ei.TARGET_VAL, INT)
+        WHERE 1 = 1
+            AND (thd.TR_SNO = #{trSno} OR thd.ORGL_TR_SNO = #{trSno} )
+            ORDER BY thd.TR_DT DESC, thd.TR_SNO DESC, thd.TR_SEQ DESC
+    </select>
+
+    <select id="selectTrHistDetailListTotalCnt" 
+        parameterType="com.albee.albeepoint.api.point.dto.TrHistSearchDto"  
+        resultType="java.lang.Long">
+        SELECT
+        COALESCE(COUNT(thd.TR_SNO), 0)
+        FROM T_TR_HIST_DETAIL thd
+            INNER JOIN T_TR_HIST th ON th.TR_SNO = thd.TR_SNO
+        WHERE 1 = 1
+        <if test = 'trSno  != null and trSno != ""'>
+            AND thd.TR_SNO = #{trSno}
+        </if>
+        <if test = 'memberNo  != null and memberNo != ""'>
+            AND thd.MEMBER_NO = #{memberNo}
+        </if>
+        <if test = 'contNo  != null and contNo != ""'>
+            AND thd.CONT_NO = #{contNo}
+        </if>
+        <if test = 'ptNo  != null and ptNo != ""'>
+            AND thd.PT_NO = #{ptNo}
+        </if>
+        <if test = 'memberPtNo  != null and memberPtNo != ""'>
+            AND thd.MEMBER_PT_NO = #{memberPtNo}
+        </if>
+        <if test = 'trGbCd  != null and trGbCd != ""'>
+            AND thd.TR_GB_CD = #{trGbCd}
+        </if>
+        <if test = 'startDt != null and endDt != null '>
+            AND thd.TR_DT BETWEEN #{startDt} AND #{endDt}
+        </if>
+    </select>
+
+    <select id="selectTrHistDetailList" 
+        parameterType="com.albee.albeepoint.api.point.dto.TrHistSearchDto" 
+        resultType="com.albee.albeepoint.api.point.dto.TrHistDetailDto">
+        SELECT
+        T.ROW_NUM AS ROW_NUM
+        ,T.*
+        FROM
+        (
+        SELECT
+            <if test = 'searchTrHistDirection  == "ASC" or searchTrHistDirection == null or searchTrHistDirection == ""'>
+                ROW_NUMBER() OVER(ORDER BY thd.TR_SNO ASC, thd.TR_SEQ ASC) ROW_NUM
+            </if>
+            <if test = 'searchTrHistDirection  == "DESC"'>
+                ROW_NUMBER() OVER(ORDER BY thd.TR_SNO DESC, thd.TR_SEQ DESC) ROW_NUM
+            </if>
+            ,thd.TR_SNO
+            ,thd.TR_SEQ
+            ,thd.CONT_NO
+            ,cm.CONT_NM
+            ,thd.MEMBER_NO
+            ,AES_DECRYPT(FROM_BASE64(mm.MEMBER_ID_ENC) , ei.ENC_KEY) AS MEMBER_ID
+            ,thd.PT_NO
+            ,thd.MEMBER_PT_NO
+            ,thd.TR_DT
+            ,thd.TR_GB_CD
+            ,thd.TR_METHOD_GB_CD
+            ,thd.TR_PT
+            ,thd.BEF_BAL_PT
+            ,thd.AFR_BAL_PT
+            ,thd.CONT_BEF_BAL_PT
+            ,thd.CONT_AFR_BAL_PT
+            ,thd.ORGL_TR_SNO
+            ,thd.REG_USER_ID
+            ,thd.REG_DT
+            ,thd.LAST_MOD_USER_ID
+            ,thd.LAST_MOD_DT
+        FROM T_TR_HIST_DETAIL thd
+            INNER JOIN T_MEMBER_MST mm ON mm.MEMBER_NO = thd.MEMBER_NO
+            INNER JOIN T_ENC_INFO ei ON ei.TARGET_GB_CD = 'ORG' AND mm.ORG_NO = CONVERT (ei.TARGET_VAL, INT)
+            INNER JOIN T_TR_HIST th ON th.TR_SNO = thd.TR_SNO
+            INNER JOIN T_CONT_MST cm ON cm.CONT_NO = thd.CONT_NO
+        WHERE 1 = 1
+        <if test = 'trSno  != null and trSno != ""'>
+            AND thd.TR_SNO = #{trSno}
+        </if>
+        <if test = 'memberNo  != null and memberNo != ""'>
+            AND thd.MEMBER_NO = #{memberNo}
+        </if>
+        <if test = 'contNo  != null and contNo != ""'>
+            AND thd.CONT_NO = #{contNo}
+        </if>
+        <if test = 'ptNo  != null and ptNo != ""'>
+            AND thd.PT_NO = #{ptNo}
+        </if>
+        <if test = 'memberPtNo  != null and memberPtNo != ""'>
+            AND thd.MEMBER_PT_NO = #{memberPtNo}
+        </if>
+        <if test = 'trGbCd  != null and trGbCd != ""'>
+            AND thd.TR_GB_CD = #{trGbCd}
+        </if>
+        <if test = 'startDt != null and endDt != null '>
+            AND thd.TR_DT BETWEEN #{startDt} AND #{endDt}
+        </if>
+        <if test = 'searchTrHistDirection  == "ASC" or searchTrHistDirection == null or searchTrHistDirection == ""'>
+            ORDER BY thd.TR_SNO ASC, thd.TR_SEQ ASC
+        </if>
+        <if test = 'searchTrHistDirection  == "DESC"'>
+            ORDER BY thd.TR_DT DESC, thd.TR_SNO DESC, thd.TR_SEQ DESC
+        </if>
+        ) T
+        <if test = 'startIndex != null and endIndex != null '>
+            WHERE T.ROW_NUM BETWEEN #{startIndex} AND #{endIndex}
+        </if>
+    </select>
+</mapper>

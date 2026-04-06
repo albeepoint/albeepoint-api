@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.albee.albeepoint.mapper.common.GetIdMapper">
+
+    <select id="createContMstHistId" parameterType="java.lang.Long" resultType="java.lang.Long">
+        SELECT COALESCE(MAX(COALESCE(CONT_HIST_SEQ, 0)) + 1, 1)
+        FROM  T_CONT_MST_HIST
+        WHERE CONT_NO = #{contNo}
+    </select>
+</mapper>

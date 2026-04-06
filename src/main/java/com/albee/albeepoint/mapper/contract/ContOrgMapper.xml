@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.albee.albeepoint.mapper.contract.ContOrgMapper">
+
+    <select id="selectContOrg" 
+        parameterType="com.albee.albeepoint.mapper.contract.ContOrgSearchDto"  
+        resultType="com.albee.albeepoint.mapper.contract.ContOrgDto">
+        SELECT
+             co.CONT_NO
+            ,co.CONT_SEQ
+            ,co.ORG_NO
+            ,om.ORG_CD
+            ,co.BRCH_POLICY_TYPE_CD
+            ,co.SAVE_CAN_YN
+            ,co.USE_CAN_YN
+            ,co.CONT_ORG_STS_CD
+            ,co.TOTAL_ISU_ABLE_CNT
+            ,co.TOTAL_ISU_ABLE_PT
+            ,co.REG_USER_ID
+            ,co.REG_DT
+            ,co.LAST_MOD_USER_ID
+            ,co.LAST_MOD_DT
+        FROM T_CONT_ORG co
+            INNER JOIN T_ORG_MST om ON om.ORG_NO = co.ORG_NO
+        WHERE 1 = 1
+        <if test = 'contNo  != null and contNo != ""'>
+            AND co.CONT_NO = #{contNo}
+        </if>
+        <if test = 'contSeq  != null and contSeq != ""'>
+            AND co.CONT_SEQ = #{contSeq}
+        </if>
+        <if test = 'orgNo  != null and orgNo != ""'>
+            AND co.ORG_NO = #{orgNo}
+        </if>
+        <if test = 'orgCd  != null and orgCd != ""'>
+            AND om.ORG_CD = #{orgCd}
+        </if>
+    </select>
+
+    <select id="selectContOrgListTotalCnt" 
+        parameterType="com.albee.albeepoint.mapper.contract.ContOrgSearchDto"  
+        resultType="java.lang.Long">
+        SELECT
+        COUNT(*)
+        FROM CONT_ORG co
+            INNER JOIN T_ORG_MST om ON om.ORG_NO = co.ORG_NO
+        WHERE 1 = 1
+        <if test = 'contNo  != null and contNo != ""'>
+            AND co.CONT_NO = #{contNo}
+        </if>
+        <if test = 'contSeq  != null and contSeq != ""'>
+            AND co.CONT_SEQ = #{contSeq}
+        </if>
+        <if test = 'orgNo  != null and orgNo != ""'>
+            AND co.ORG_NO = #{orgNo}
+        </if>
+        <if test = 'orgCd  != null and orgCd != ""'>
+            AND om.ORG_CD = #{orgCd}
+        </if>
+    </select>
+
+    <select id="selectContOrgList" 
+        parameterType="com.albee.albeepoint.mapper.contract.ContOrgSearchDto"   
+        resultType="com.albee.albeepoint.mapper.contract.ContOrgDto">
+        SELECT
+        T.ROW_NUM AS ROW_NUM
+        ,T.*
+        FROM
+        (
+        SELECT
+        ROW_NUMBER() OVER(ORDER BY co.CONT_NO, co.CONT_SEQ, co.ORG_NO) ROW_NUM
+        ,co.CONT_NO
+        ,co.CONT_SEQ
+        ,co.ORG_NO
+        ,om.ORG_CD
+        ,co.BRCH_POLICY_TYPE_CD
+        ,co.SAVE_CAN_YN
+        ,co.USE_CAN_YN
+        ,co.CONT_ORG_STS_CD
+        ,co.TOTAL_ISU_ABLE_CNT
+        ,co.TOTAL_ISU_ABLE_PT
+        ,co.REG_USER_ID
+        ,co.REG_DT
+        ,co.LAST_MOD_USER_ID
+        ,co.LAST_MOD_DT
+        FROM T_CONT_ORG co
+            INNER JOIN T_ORG_MST om ON om.ORG_NO = co.ORG_NO
+        WHERE 1 = 1
+        <if test = 'contNo  != null and contNo != ""'>
+            AND co.CONT_NO = #{contNo}
+        </if>
+        <if test = 'contSeq  != null and contSeq != ""'>
+            AND co.CONT_SEQ = #{contSeq}
+        </if>
+        <if test = 'orgNo  != null and orgNo != ""'>
+            AND co.ORG_NO = #{orgNo}
+        </if>
+        <if test = 'orgCd  != null and orgCd != ""'>
+            AND om.ORG_CD = #{orgCd}
+        </if>
+        ORDER BY co.CONT_NO, co.CONT_SEQ, co.ORG_NO
+        ) T
+        <if test = 'startIndex != null and endIndex != null '>
+            WHERE T.ROW_NUM BETWEEN #{startIndex} AND #{endIndex}
+        </if>
+    </select>
+</mapper>

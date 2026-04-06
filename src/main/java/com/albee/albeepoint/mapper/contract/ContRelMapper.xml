@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.albee.albeepoint.mapper.contract.ContRelMapper">
+
+    <select id="selectNewContRelNo" resultType="java.lang.Long">
+        SELECT COALESCE(MAX(CONT_REL_NO), 10000) + 1
+          FROM T_CONT_REL
+    </select>
+
+    <select id="selectNewContRelSeq" 
+        parameterType="com.albee.albeepoint.mapper.contract.ContRelSearchDto" 
+        resultType="java.lang.Long">
+        SELECT COALESCE(MAX(CONT_REL_SEQ), 0) + 1
+          FROM T_CONT_REL
+         WHERE
+            CONT_REL_NO = #{contRelNo};
+    </select>
+
+    <select id="selectContRel" 
+        parameterType="com.albee.albeepoint.mapper.contract.ContRelSearchDto" 
+        resultType="com.albee.albeepoint.mapper.contract.ContRelDto>
+        SELECT
+            CONT_REL_NO
+            ,CONT_REL_SEQ
+            ,CONT_REL_GB_CD
+            ,CONT_ROLE
+            ,CONT_NO
+            ,LINK_CONT_NO
+            ,CONT_REL_INFO
+            ,CONT_REL_USE_YN
+            ,REG_USER_ID
+            ,REG_DT
+            ,LAST_MOD_USER_ID
+            ,LAST_MOD_DT
+        FROM T_CONT_REL
+        WHERE 1 = 1
+        <if test = 'contRelNo  != null and contRelNo != ""'>
+            AND CONT_REL_NO = #{contRelNo}
+        </if>
+        <if test = 'contRelSeq  != null and contRelSeq != ""'>
+            AND CONT_REL_SEQ = #{contRelSeq}
+        </if>
+        <if test = 'contRelGbCd  != null and contRelGbCd != ""'>
+            AND CONT_REL_GB_CD = #{contRelGbCd}
+        </if>
+        <if test = 'contRole  != null and contRole != ""'>
+            AND CONT_ROLE = #{contRole}
+        </if>
+        <if test = 'contNo  != null and contNo != ""'>
+            AND CONT_NO = #{contNo}
+        </if>
+        <if test = 'linkContNo  != null and linkContNo != ""'>
+            AND LINK_CONT_NO = #{linkContNo}
+        </if>
+        <if test = 'contRelUseYn  != null and contRelUseYn != ""'>
+            AND CONT_REL_USE_YN = #{contRelUseYn}
+        </if>
+    </select>
+
+    <select id="selectContRelListTotalCnt" 
+        parameterType="com.albee.albeepoint.mapper.contract.ContRelSearchDto" 
+        resultType="java.lang.Long">
+        SELECT
+        COUNT(*)
+        FROM T_CONT_REL
+        WHERE 1 = 1
+        <if test = 'contRelNo  != null and contRelNo != ""'>
+            AND CONT_REL_NO = #{contRelNo}
+        </if>
+        <if test = 'contRelSeq  != null and contRelSeq != ""'>
+            AND CONT_REL_SEQ = #{contRelSeq}
+        </if>
+        <if test = 'contRelGbCd  != null and contRelGbCd != ""'>
+            AND CONT_REL_GB_CD = #{contRelGbCd}
+        </if>
+        <if test = 'contRole  != null and contRole != ""'>
+            AND CONT_ROLE = #{contRole}
+        </if>
+        <if test = 'contNo  != null and contNo != ""'>
+            AND CONT_NO = #{contNo}
+        </if>
+        <if test = 'linkContNo  != null and linkContNo != ""'>
+            AND LINK_CONT_NO = #{linkContNo}
+        </if>
+        <if test = 'contRelUseYn  != null and contRelUseYn != ""'>
+            AND CONT_REL_USE_YN = #{contRelUseYn}
+        </if>
+    </select>
+
+    <select id="selectContRelList" 
+        parameterType="com.albee.albeepoint.mapper.contract.ContRelSearchDto" 
+        resultType="com.albee.albeepoint.mapper.contract.ContRelDto">
+        SELECT
+        T.ROW_NUM AS ROW_NUM
+        ,T.*
+        FROM
+        (
+        SELECT
+        ROW_NUMBER() OVER(ORDER BY CONT_REL_NO, CONT_REL_SEQ) ROW_NUM
+            ,CONT_REL_NO
+            ,CONT_REL_SEQ
+            ,CONT_REL_GB_CD
+            ,CONT_ROLE
+            ,CONT_NO
+            ,LINK_CONT_NO
+            ,CONT_REL_INFO
+            ,CONT_REL_USE_YN
+            ,REG_USER_ID
+            ,REG_DT
+            ,LAST_MOD_USER_ID
+            ,LAST_MOD_DT
+        FROM T_CONT_REL
+        WHERE 1 = 1
+        <if test = 'contRelNo  != null and contRelNo != ""'>
+            AND CONT_REL_NO = #{contRelNo}
+        </if>
+        <if test = 'contRelSeq  != null and contRelSeq != ""'>
+            AND CONT_REL_SEQ = #{contRelSeq}
+        </if>
+        <if test = 'contRelGbCd  != null and contRelGbCd != ""'>
+            AND CONT_REL_GB_CD = #{contRelGbCd}
+        </if>
+        <if test = 'contRole  != null and contRole != ""'>
+            AND CONT_ROLE = #{contRole}
+        </if>
+        <if test = 'contNo  != null and contNo != ""'>
+            AND CONT_NO = #{contNo}
+        </if>
+        <if test = 'linkContNo  != null and linkContNo != ""'>
+            AND LINK_CONT_NO = #{linkContNo}
+        </if>
+        <if test = 'contRelUseYn  != null and contRelUseYn != ""'>
+            AND CONT_REL_USE_YN = #{contRelUseYn}
+        </if>
+        ORDER BY CONT_REL_NO, CONT_REL_SEQ
+        ) T
+        <if test = 'startIndex != null and endIndex != null '>
+            WHERE T.ROW_NUM BETWEEN #{startIndex} AND #{endIndex}
+        </if>
+    </select>
+</mapper>

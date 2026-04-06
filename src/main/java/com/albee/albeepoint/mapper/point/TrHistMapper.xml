@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.albeepoint.core.biz.point.repository.TrHistMapper">
+
+
+    <select id="selectLastOneTrHist" 
+        parameterType="com.albee.albeepoint.api.point.dto.TrHistSearchDto"  
+        resultType="com.albee.albeepoint.api.point.dto.TrHistDto">
+        SELECT
+            th.TR_SNO
+            ,th.MEMBER_NO
+            ,th.TR_DT
+            ,th.TR_GB_CD
+            ,th.TR_METHOD_GB_CD
+            ,th.TR_DY
+            ,th.ORG_NO
+            ,th.BRCH_NO
+            ,th.TR_PT
+            ,th.BEF_PT
+            ,th.AFR_PT
+            ,th.ORGL_TR_SNO
+            ,th.REG_USER_ID
+            ,th.REG_DT
+            ,th.LAST_MOD_USER_ID
+            ,th.LAST_MOD_DT
+        FROM T_TR_HIST th
+            <if test='contNo  != null and contNo != ""'>
+                INNER JOIN T_TR_HIST_DETAIL thd ON thd.MEMBER_NO = #{memberNo}
+                      AND thd.CONT_NO = #{contNo} AND thd.TR_SNO = th.TR_SNO
+            </if>
+        WHERE th.MEMBER_NO = #{memberNo}
+            <if test='trGbCd  != null and trGbCd != ""'>
+              AND th.TR_GB_CD = #{trGbCd}
+            </if>
+            <if test = 'trSno  != null and trSno != ""'>
+                AND th.TR_SNO = #{trSno}
+            </if>
+            <if test = 'orglTrSno  != null and orglTrSno != ""'>
+                AND th.ORGL_TR_SNO = #{orglTrSno}
+            </if>
+        ORDER BY th.TR_DT DESC, th.TR_SNO DESC
+        LIMIT 1
+    </select>
+
+    <select id="selectTrHistListTotalCnt" 
+        parameterType="com.albee.albeepoint.api.point.dto.TrHistSearchDto"  
+        resultType="java.lang.Long">
+        SELECT
+        COUNT(th.TR_SNO)
+        FROM T_TR_HIST th
+        WHERE 1 = 1
+        <if test = 'memberNo  != null and memberNo != ""'>
+            AND th.MEMBER_NO = #{memberNo}
+        </if>
+        <if test = 'orgNo  != null and orgNo != ""'>
+            AND th.ORG_NO = #{orgNo}
+        </if>
+        <if test = 'brchNo  != null and brchNo != ""'>
+            AND th.BRCH_NO = #{brchNo}
+        </if>
+        <if test = 'startDt  != null and endDt != null'>
+            AND (th.TR_DT <![CDATA[ >= ]]> #{startDt} AND th.TR_DT <![CDATA[ < ]]> #{endDt})
+        </if>
+        <if test = 'trGbCd  != null and trGbCd != ""'>
+            AND th.TR_GB_CD = #{trGbCd}
+        </if>
+        <if test = 'trGbCdList  != null and trGbCdList.size > 0 '>
+            AND th.TR_GB_CD IN
+            <foreach collection="trGbCdList" item="code" index="index" separator="," open="(" close=")">
+                #{code}
+            </foreach>
+        </if>
+        <if test='trMethodGbCd  != null and trMethodGbCd != ""'>
+          AND th.TR_METHOD_GB_CD = #{trMethodGbCd}
+        </if>
+        <if test = 'orglTrSno  != null and orglTrSno != ""'>
+            AND th.ORGL_TR_SNO = #{orglTrSno}
+        </if>
+    </select>
+
+    <select id="selectTrHistList" 
+        parameterType="com.albee.albeepoint.api.point.dto.TrHistSearchDto"    
+        resultType="com.albee.albeepoint.api.point.dto.TrHistDto">
+        SELECT
+        T.ROW_NUM AS ROW_NUM
+        ,T.*
+        FROM
+        (
+        SELECT
+        ROW_NUMBER() OVER(ORDER BY th.TR_SNO) ROW_NUM
+        ,th.TR_SNO
+        ,th.MEMBER_NO
+        ,th.TR_DT
+        ,th.TR_GB_CD
+        ,th.TR_METHOD_GB_CD
+        ,th.TR_DY
+        ,th.ORG_NO
+        ,th.BRCH_NO
+        ,th.TR_PT
+        ,th.BEF_PT
+        ,th.AFR_PT
+        ,th.ORGL_TR_SNO
+        ,th.REG_USER_ID
+        ,th.REG_DT
+        ,th.LAST_MOD_USER_ID
+        ,th.LAST_MOD_DT
+        FROM T_TR_HIST th
+        WHERE 1 = 1
+        <if test = 'memberNo  != null and memberNo != ""'>
+            AND th.MEMBER_NO = #{memberNo}
+        </if>
+        <if test = 'orgNo  != null and orgNo != ""'>
+            AND th.ORG_NO = #{orgNo}
+        </if>
+        <if test = 'brchNo  != null and brchNo != ""'>
+            AND th.BRCH_NO = #{brchNo}
+        </if>
+        <if test = 'startDt  != null and endDt != null'>
+            AND (th.TR_DT <![CDATA[ >= ]]> #{startDt} AND th.TR_DT <![CDATA[ < ]]> #{endDt})
+        </if>
+        <if test = 'trGbCd  != null and trGbCd != ""'>
+            AND th.TR_GB_CD = #{trGbCd}
+        </if>
+        <if test = 'trGbCdList  != null and trGbCdList.size > 0 '>
+            AND th.TR_GB_CD IN
+            <foreach collection="trGbCdList" item="code" index="index" separator="," open="(" close=")">
+                #{code}
+            </foreach>
+        </if>
+        <if test='trMethodGbCd  != null and trMethodGbCd != ""'>
+          AND th.TR_METHOD_GB_CD = #{trMethodGbCd}
+        </if>
+        <if test = 'orglTrSno  != null and orglTrSno != ""'>
+            AND th.ORGL_TR_SNO = #{orglTrSno}
+        </if>
+        ORDER BY th.TR_DT DESC, th.TR_SNO DESC
+        ) T
+        <if test = 'startIndex != null and endIndex != null '>
+            WHERE T.ROW_NUM BETWEEN #{startIndex} AND #{endIndex}
+        </if>
+    </select>
+</mapper>

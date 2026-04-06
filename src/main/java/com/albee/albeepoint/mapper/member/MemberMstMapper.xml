@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.albee.albeepoint.mapper.member.MemberMstMapper">
+
+    <select id="selectSeqMemberMstNo" resultType="java.lang.Long">
+        SELECT nextval(SEQ_MEMBER_MST_NO);
+    </select>
+
+    <select id="selectMemberMst" 
+        parameterType="com.albee.albeepoint.api.member.dto.MemberSearchDto"  
+        resultType="com.albee.albeepoint.api.member.dto.MemberMstDto">
+        SELECT
+              mm.MEMBER_NO
+             ,mm.ORG_NO
+             ,om.ORG_CD
+             ,AES_DECRYPT(FROM_BASE64(mm.MEMBER_ID_ENC) , ei.ENC_KEY) AS MEMBER_ID
+             ,mm.MEMBER_ID_ENC
+             ,AES_DECRYPT(FROM_BASE64(mm.MEMBER_NM) , ei.ENC_KEY) AS MEMBER_NM
+             ,mm.MEMBER_STS_CD
+             ,mm.JOIN_DT
+             ,mm.LEAVE_DT
+             ,mm.LAST_CONTACT_DT
+             ,mm.REG_USER_ID
+             ,mm.REG_DT
+             ,mm.LAST_MOD_USER_ID
+             ,mm.LAST_MOD_DT
+        FROM T_MEMBER_MST mm
+            INNER JOIN T_ORG_MST om ON om.ORG_NO = mm.ORG_NO
+                <if test = 'orgCd  != null and orgCd != ""'>
+                    AND om.ORG_CD = #{orgCd}
+                </if>
+                <if test = 'orgNo  != null and orgNo != ""'>
+                    AND om.ORG_NO = #{orgNo}
+                </if>
+            INNER JOIN T_ENC_INFO ei ON ei.TARGET_GB_CD = 'ORG' AND mm.ORG_NO = CONVERT (ei.TARGET_VAL, INT)
+        WHERE 1 = 1
+        <if test = 'memberNo  != null and memberNo != ""'>
+            AND mm.MEMBER_NO = #{memberNo}
+        </if>
+        <if test = 'orgNo  != null and orgNo != ""'>
+            AND mm.ORG_NO = #{orgNo}
+        </if>
+        <if test = 'memberId  != null and memberId != ""'>
+            AND mm.MEMBER_ID_ENC = TO_BASE64(AES_ENCRYPT(#{memberId}, ei.ENC_KEY))
+        </if>
+        <if test = 'memberIdEnc  != null and memberIdEnc != ""'>
+            AND mm.MEMBER_ID_ENC = #{memberIdEnc}
+        </if>
+        <if test = 'memberNm  != null and memberNm != ""'>
+            AND mm.MEMBER_NM = TO_BASE64(AES_ENCRYPT(#{memberNm}, ei.ENC_KEY))
+        </if>
+        <if test = 'memberStsCd  != null and memberStsCd != ""'>
+            AND mm.MEMBER_STS_CD = #{memberStsCd}
+        </if>
+    </select>
+
+
+    <select id="selectMemberMstByIdOrPid" 
+        parameterType="com.albee.albeepoint.api.member.dto.MemberSearchDto"  
+        resultType="com.albee.albeepoint.api.member.dto.MemberMstDto">
+        SELECT *
+        FROM (
+            SELECT
+            mm.MEMBER_NO
+            ,mm.ORG_NO
+            ,om.ORG_CD
+            ,AES_DECRYPT(FROM_BASE64(mm.MEMBER_ID_ENC) , ei.ENC_KEY) AS MEMBER_ID
+            ,mm.MEMBER_ID_ENC
+            ,AES_DECRYPT(FROM_BASE64(mm.MEMBER_NM) , ei.ENC_KEY) AS MEMBER_NM
+            ,mm.MEMBER_STS_CD
+            ,mm.JOIN_DT
+            ,mm.LEAVE_DT
+            ,mm.LAST_CONTACT_DT
+            ,mm.REG_USER_ID
+            ,mm.REG_DT
+            ,mm.LAST_MOD_USER_ID
+            ,mm.LAST_MOD_DT
+            FROM T_MEMBER_MST mm
+            INNER JOIN T_ORG_MST om ON om.ORG_NO = mm.ORG_NO
+                    <if test = 'orgCd  != null and orgCd != ""'>
+                        AND om.ORG_CD = #{orgCd}
+                    </if>
+                    <if test = 'orgNo  != null and orgNo != ""'>
+                        AND om.ORG_NO = #{orgNo}
+                    </if>
+            INNER JOIN T_ENC_INFO ei ON ei.TARGET_GB_CD = 'ORG' AND mm.ORG_NO = CONVERT (ei.TARGET_VAL, INT)
+            WHERE 1 = 1
+                <if test='orgNo  != null and orgNo != ""'>
+                    AND mm.ORG_NO = #{orgNo}
+                </if>
+                <if test = 'memberId  != null and memberId != ""'>
+                    AND mm.MEMBER_ID_ENC = TO_BASE64(AES_ENCRYPT(#{memberId}, ei.ENC_KEY))
+                </if>
+                <if test = 'memberIdEnc  != null and memberIdEnc != ""'>
+                    AND mm.MEMBER_ID_ENC = #{memberIdEnc}
+                </if>
+                <if test = 'memberNm  != null and memberNm != ""'>
+                    AND mm.MEMBER_NM = TO_BASE64(AES_ENCRYPT(#{memberNm}, ei.ENC_KEY))
+                </if>
+                <if test = 'memberStsCd  != null and memberStsCd != ""'>
+                    AND mm.MEMBER_STS_CD = #{memberStsCd}
+                </if>
+            UNION ALL
+            SELECT
+                mm.MEMBER_NO
+                ,mm.ORG_NO
+                ,om.ORG_CD
+                ,AES_DECRYPT(FROM_BASE64(mm.MEMBER_ID_ENC) , ei.ENC_KEY) AS MEMBER_ID
+                ,mm.MEMBER_ID_ENC
+                ,AES_DECRYPT(FROM_BASE64(mm.MEMBER_NM) , ei.ENC_KEY) AS MEMBER_NM
+                ,mm.MEMBER_STS_CD
+                ,mm.JOIN_DT
+                ,mm.LEAVE_DT
+                ,mm.LAST_CONTACT_DT
+                ,mm.REG_USER_ID
+                ,mm.REG_DT
+                ,mm.LAST_MOD_USER_ID
+                ,mm.LAST_MOD_DT
+            FROM T_MEMBER_MST mm
+                INNER JOIN T_ORG_MST om ON om.ORG_NO = mm.ORG_NO
+                    <if test = 'orgCd  != null and orgCd != ""'>
+                        AND om.ORG_CD = #{orgCd}
+                    </if>
+                    <if test = 'orgNo  != null and orgNo != ""'>
+                        AND om.ORG_NO = #{orgNo}
+                    </if>
+                INNER JOIN T_ENC_INFO ei ON ei.TARGET_GB_CD = 'ORG' AND mm.ORG_NO = CONVERT (ei.TARGET_VAL, INT)
+                INNER JOIN T_MEMBER_PID mp ON mp.MEMBER_NO = mm.MEMBER_NO
+                        <if test = 'orgNo  != null and orgNo != ""'>
+                            AND mp.ORG_NO = #{orgNo}
+                        </if>
+                        <if test = 'memberId  != null and memberId != ""'>
+                            AND mp.PID_ENC = TO_BASE64(AES_ENCRYPT(#{memberId}, ei.ENC_KEY))
+                        </if>
+                        <if test = 'memberIdEnc  != null and memberIdEnc != ""'>
+                            AND mp.PID_ENC = #{memberIdEnc}
+                        </if>
+                        <if test = 'memberStsCd  != null and memberStsCd != ""'>
+                            AND mp.PID_STS_CD = #{memberStsCd}
+                        </if>
+            WHERE 1 = 1
+            <if test = 'orgNo  != null and orgNo != ""'>
+                AND mm.ORG_NO = #{orgNo}
+            </if>
+            <if test = 'memberStsCd  != null and memberStsCd != ""'>
+                AND mm.MEMBER_STS_CD = #{memberStsCd}
+            </if>
+        ) a
+        LIMIT 1
+    </select>
+
+    <select id="selectMemberMstListTotalCnt" 
+        parameterType="com.albee.albeepoint.api.member.dto.MemberSearchDto"  
+        resultType="java.lang.Long">
+        SELECT
+        COUNT(*)
+        FROM T_MEMBER_MST mm
+            INNER JOIN T_ENC_INFO ei ON ei.TARGET_GB_CD = 'ORG' AND mm.ORG_NO = CAST(ei.TARGET_VAL AS UNSIGNED)
+        WHERE 1 = 1
+        <if test = 'memberNo  != null and memberNo != ""'>
+            AND mm.MEMBER_NO = #{memberNo}
+        </if>
+        <if test = 'orgNo  != null and orgNo != ""'>
+            AND mm.ORG_NO = #{orgNo}
+        </if>
+        <if test = 'memberId  != null and memberId != ""'>
+            AND mm.MEMBER_ID_ENC = TO_BASE64(AES_ENCRYPT(#{memberId}, ei.ENC_KEY))
+        </if>
+        <if test = 'memberIdEnc  != null and memberIdEnc != ""'>
+            AND mm.MEMBER_ID_ENC = #{memberIdEnc}
+        </if>
+        <if test = 'memberNm  != null and memberNm != ""'>
+            AND mm.MEMBER_NM = TO_BASE64(AES_ENCRYPT(#{memberNm}, ei.ENC_KEY))
+        </if>
+        <if test = 'memberStsCd  != null and memberStsCd != ""'>
+            AND mm.MEMBER_STS_CD = #{memberStsCd}
+        </if>
+    </select>
+
+    <select id="selectMemberMstList" 
+        parameterType="com.albee.albeepoint.api.member.dto.MemberSearchDto"  
+        resultType="com.albee.albeepoint.api.member.dto.MemberMstDto">
+        SELECT
+        T.ROW_NUM AS ROW_NUM
+        ,T.*
+        FROM
+        (
+        SELECT
+        ROW_NUMBER() OVER(ORDER BY MEMBER_NO) ROW_NUM
+        ,mm.MEMBER_NO
+        ,mm.ORG_NO
+        ,AES_DECRYPT(FROM_BASE64(mm.MEMBER_ID_ENC) , ei.ENC_KEY) AS MEMBER_ID
+        ,mm.MEMBER_ID_ENC
+        ,AES_DECRYPT(FROM_BASE64(mm.MEMBER_NM) , ei.ENC_KEY) AS MEMBER_NM
+        ,mm.MEMBER_STS_CD
+        ,mm.JOIN_DT
+        ,mm.LEAVE_DT
+        ,mm.LAST_CONTACT_DT
+        ,mm.REG_USER_ID
+        ,mm.REG_DT
+        ,mm.LAST_MOD_USER_ID
+        ,mm.LAST_MOD_DT
+        FROM T_MEMBER_MST mm
+            INNER JOIN T_ENC_INFO ei ON ei.TARGET_GB_CD = 'ORG' AND mm.ORG_NO = CAST(ei.TARGET_VAL AS UNSIGNED)
+        WHERE 1 = 1
+        <if test = 'memberNo  != null and memberNo != ""'>
+            AND mm.MEMBER_NO = #{memberNo}
+        </if>
+        <if test = 'orgNo  != null and orgNo != ""'>
+            AND mm.ORG_NO = #{orgNo}
+        </if>
+        <if test = 'memberId  != null and memberId != ""'>
+            AND mm.MEMBER_ID_ENC = TO_BASE64(AES_ENCRYPT(#{memberId}, ei.ENC_KEY))
+        </if>
+        <if test = 'memberIdEnc  != null and memberIdEnc != ""'>
+            AND mm.MEMBER_ID_ENC = #{memberIdEnc}
+        </if>
+        <if test = 'memberNm  != null and memberNm != ""'>
+            AND mm.MEMBER_NM = TO_BASE64(AES_ENCRYPT(#{memberNm}, ei.ENC_KEY))
+        </if>
+        <if test = 'memberStsCd  != null and memberStsCd != ""'>
+            AND mm.MEMBER_STS_CD = #{memberStsCd}
+        </if>
+        ORDER BY MEMBER_NO
+        ) T
+        <if test = 'startIndex != null and endIndex != null '>
+            WHERE T.ROW_NUM BETWEEN #{startIndex} AND #{endIndex}
+        </if>
+    </select>
+</mapper>

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.albee.albeepoint.api.org.dto.BrchMstMapper">
+
+    <select id="selectSeqBrchMstNo"         
+        parameterType="com.albee.albeepoint.api.org.dto.OrgSearchDto"  
+        resultType="java.lang.Long">
+        SELECT COALESCE(MAX(BRCH_NO), 10000) + 1
+          FROM T_BRCH_MST
+         WHERE ORG_NO = #{orgNo};
+    </select>
+
+    <!-- <select id="selectBrchMst" 
+        parameterType="com.albee.albeepoint.api.org.dto.OrgSearchDto"  
+        resultType="com.albee.albeepoint.mapper.base.t_brch_mst.TBrchMst">
+        SELECT
+            ORG_NO
+             ,BRCH_NO
+             ,ORG_CD
+             ,BRCH_CD
+             ,BRCH_NM
+             ,BRCH_DISP_NM
+             ,SAVE_CAN_YN
+             ,USE_CAN_YN
+             ,BRCH_STS_CD
+             ,REG_USER_ID
+             ,REG_DT
+             ,LAST_MOD_USER_ID
+             ,LAST_MOD_DT
+        FROM T_BRCH_MST
+        WHERE 1 = 1
+        <if test = 'orgNo  != null and orgNo != ""'>
+            AND ORG_NO = #{orgNo}
+        </if>
+        <if test = 'brchNo  != null and brchNo != ""'>
+            AND BRCH_NO = #{brchNo}
+        </if>
+        <if test = 'orgCd  != null and orgCd != ""'>
+            AND ORG_CD = #{orgCd}
+        </if>
+        <if test = 'brchCd  != null and brchCd != ""'>
+            AND BRCH_CD = #{brchCd}
+        </if>
+    </select> -->
+
+    <select id="selectBrchMstListTotalCnt" 
+        parameterType="com.albee.albeepoint.api.org.dto.OrgSearchDto"  
+        resultType="java.lang.Long">
+        SELECT
+        COUNT(*)
+        FROM T_BRCH_MST
+        WHERE 1 = 1
+        <if test = 'orgNo  != null and orgNo != ""'>
+            AND ORG_NO = #{orgNo}
+        </if>
+        <if test = 'brchNo  != null and brchNo != ""'>
+            AND BRCH_NO = #{brchNo}
+        </if>
+        <if test = 'orgCd  != null and orgCd != ""'>
+            AND ORG_CD = #{orgCd}
+        </if>
+        <if test = 'brchCd  != null and brchCd != ""'>
+            AND BRCH_CD = #{brchCd}
+        </if>
+    </select>
+
+    <select id="selectBrchMstList" 
+        parameterType="com.albee.albeepoint.api.org.dto.OrgSearchDto"  
+        resultType="com.albee.albeepoint.mapper.base.t_brch_mst.TBrchMst">
+        SELECT
+        T.ROW_NUM AS ROW_NUM
+        ,T.*
+        FROM
+        (
+        SELECT
+        ROW_NUMBER() OVER(ORDER BY ORG_NO, BRCH_NO) ROW_NUM
+        ,ORG_NO
+        ,BRCH_NO
+        ,ORG_CD
+        ,BRCH_CD
+        ,BRCH_NM
+        ,BRCH_DISP_NM
+        ,SAVE_CAN_YN
+        ,USE_CAN_YN
+        ,BRCH_STS_CD
+        ,REG_USER_ID
+        ,REG_DT
+        ,LAST_MOD_USER_ID
+        ,LAST_MOD_DT
+        FROM T_BRCH_MST
+        WHERE 1 = 1
+        <if test = 'orgNo  != null and orgNo != ""'>
+            AND ORG_NO = #{orgNo}
+        </if>
+        <if test = 'brchNo  != null and brchNo != ""'>
+            AND BRCH_NO = #{brchNo}
+        </if>
+        <if test = 'orgCd  != null and orgCd != ""'>
+            AND ORG_CD = #{orgCd}
+        </if>
+        <if test = 'brchCd  != null and brchCd != ""'>
+            AND BRCH_CD = #{brchCd}
+        </if>
+        ORDER BY ORG_NO, BRCH_NO
+        ) T
+        <if test = 'startIndex != null and endIndex != null '>
+            WHERE T.ROW_NUM BETWEEN #{startIndex} AND #{endIndex}
+        </if>
+    </select>
+</mapper>

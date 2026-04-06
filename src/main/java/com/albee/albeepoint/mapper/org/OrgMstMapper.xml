@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.albee.albeepoint.mapper.org.OrgMstMapper">
+
+    <!-- <select id="selectOrgMst" 
+        parameterType="com.albee.albeepoint.api.org.dto.OrgSearchDto"  
+        resultType="com.albee.albeepoint.mapper.base.t_org_mst.TOrgMst">
+        SELECT
+            ORG_NO
+             ,ORG_NM
+             ,ORG_CD
+             ,ORG_DISP_NM
+             ,SAVE_CAN_YN
+             ,USE_CAN_YN
+             ,MEMBER_AUTO_REG_YN
+             ,ORG_STS_CD
+             ,JOIN_DT
+             ,LEAVE_DT
+             ,REG_USER_ID
+             ,REG_DT
+             ,LAST_MOD_USER_ID
+             ,LAST_MOD_DT
+        FROM T_ORG_MST
+        WHERE 1 = 1
+        <if test = 'orgNo  != null and orgNo != ""'>
+            AND ORG_NO = #{orgNo}
+        </if>
+        <if test = 'orgCd  != null and orgCd != ""'>
+            AND ORG_CD = #{orgCd}
+        </if>
+    </select> -->
+
+    <select id="selectOrgMstListTotalCnt" 
+        parameterType="com.albee.albeepoint.api.org.dto.OrgSearchDto"  
+        resultType="java.lang.Long">
+        SELECT
+        COUNT(*)
+        FROM T_ORG_MST
+        WHERE 1 = 1
+        <if test = 'orgNo  != null and orgNo != ""'>
+            AND ORG_NO = #{orgNo}
+        </if>
+        <if test = 'orgCd  != null and orgCd != ""'>
+            AND ORG_CD = #{orgCd}
+        </if>
+    </select>
+
+    <select id="selectOrgMstList" 
+        parameterType="com.albee.albeepoint.api.org.dto.OrgSearchDto" 
+        resultType="com.albee.albeepoint.mapper.base.t_org_mst.TOrgMst">
+        SELECT
+        T.ROW_NUM AS ROW_NUM
+        ,T.*
+        FROM
+        (
+        SELECT
+            ROW_NUMBER() OVER(ORDER BY ORG_NO) ROW_NUM
+            ,ORG_NO
+            ,ORG_NM
+            ,ORG_CD
+            ,ORG_DISP_NM
+            ,SAVE_CAN_YN
+            ,USE_CAN_YN
+            ,MEMBER_AUTO_REG_YN
+            ,ORG_STS_CD
+            ,JOIN_DT
+            ,LEAVE_DT
+            ,REG_USER_ID
+            ,REG_DT
+            ,LAST_MOD_USER_ID
+            ,LAST_MOD_DT
+        FROM T_ORG_MST
+        WHERE 1 = 1
+        <if test = 'orgNo  != null and orgNo != ""'>
+            AND ORG_NO = #{orgNo}
+        </if>
+        <if test = 'orgCd  != null and orgCd != ""'>
+            AND ORG_CD = #{orgCd}
+        </if>
+        ORDER BY ORG_NO
+        ) T
+        <if test = 'startIndex != null and endIndex != null '>
+            WHERE T.ROW_NUM BETWEEN #{startIndex} AND #{endIndex}
+        </if>
+    </select>
+</mapper>

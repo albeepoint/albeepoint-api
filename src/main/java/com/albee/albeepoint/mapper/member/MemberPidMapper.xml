@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.albee.albeepoint.mapper.member.MemberPidMapper">
+
+    <select id="selectSeqMemberPidNo" resultType="Long">
+        SELECT nextval(SEQ_MEMBER_PID_NO);
+    </select>
+
+    <select id="selectMemberPid" 
+        parameterType="com.albee.albeepoint.api.member.dto.MemberPidSearchDto"  
+        resultType="com.albee.albeepoint.api.member.dto.MemberPidDto">
+        SELECT
+              pi.PID_NO
+             ,pi.MEMBER_NO
+             ,pi.ORG_NO
+             ,om.ORG_CD
+             ,AES_DECRYPT(FROM_BASE64(pi.PID_ENC) , ei.ENC_KEY) AS PID
+             ,pi.PID_ENC
+             ,pi.PID_STS_CD
+             ,pi.JOIN_DT
+             ,pi.STOP_DT
+             ,pi.REG_USER_ID
+             ,pi.REG_DT
+             ,pi.LAST_MOD_USER_ID
+             ,pi.LAST_MOD_DT
+        FROM T_MEMBER_PID pi
+            INNER JOIN T_MEMBER_MST mm ON mm.MEMBER_NO = pi.MEMBER_NO
+            INNER JOIN T_ORG_MST om ON om.ORG_NO = pi.ORG_NO
+                        <if test = 'orgCd  != null and orgCd != ""'>
+                            AND om.ORG_CD = #{orgCd}
+                        </if>
+                        <if test = 'orgNo  != null and orgNo != ""'>
+                            AND om.ORG_NO = #{orgNo}
+                        </if>
+            INNER JOIN T_ENC_INFO ei ON ei.TARGET_GB_CD = 'ORG' AND mm.ORG_NO = CAST(ei.TARGET_VAL AS UNSIGNED)
+        WHERE 1 = 1
+        <if test = 'pidNo  != null and pidNo != ""'>
+            AND pi.PID_NO = #{pidNo}
+        </if>
+        <if test = 'memberNo  != null and memberNo != ""'>
+            AND pi.MEMBER_NO = #{memberNo}
+        </if>
+        <if test = 'pid  != null and pid != ""'>
+            AND pi.PID_ENC = TO_BASE64(AES_ENCRYPT(#{pid}, ei.ENC_KEY))
+        </if>
+        <if test = 'pidEnc  != null and pidEnc != ""'>
+            AND pi.PID_ENC = #{pidEnc}
+        </if>
+    </select>
+
+    <select id="selectMemberPidListTotalCnt" 
+        parameterType="com.albee.albeepoint.api.member.dto.MemberPidSearchDto"  
+        resultType="java.lang.Long">
+        SELECT
+        COUNT(*)
+        FROM T_MEMBER_PID
+        WHERE 1 = 1
+        <if test = 'pidNo  != null and pidNo != ""'>
+            AND PID_NO = #{pidNo}
+        </if>
+    </select>
+
+    <select id="selectMemberPidList" 
+        parameterType="com.albee.albeepoint.api.member.dto.MemberPidSearchDto"  
+        resultType="com.albee.albeepoint.api.member.dto.MemberPidDto">
+        SELECT
+        T.ROW_NUM AS ROW_NUM
+        ,T.*
+        FROM
+        (
+        SELECT
+            ROW_NUMBER() OVER(ORDER BY pi.PID_NO) ROW_NUM
+            ,pi.PID_NO
+            ,pi.MEMBER_NO
+            ,pi.ORG_NO
+            ,om.ORG_CD
+            ,AES_DECRYPT(FROM_BASE64(pi.PID_ENC) , ei.ENC_KEY) AS PID
+            ,pi.PID_ENC
+            ,pi.PID_STS_CD
+            ,pi.JOIN_DT
+            ,pi.STOP_DT
+            ,pi.REG_USER_ID
+            ,pi.REG_DT
+            ,pi.LAST_MOD_USER_ID
+            ,pi.LAST_MOD_DT
+        FROM T_MEMBER_PID pi
+            INNER JOIN T_MEMBER_MST mm ON mm.MEMBER_NO = pi.MEMBER_NO
+            INNER JOIN T_ORG_MST om ON om.ORG_NO = pi.ORG_NO
+                        <if test = 'orgCd  != null and orgCd != ""'>
+                            AND om.ORG_CD = #{orgCd}
+                        </if>
+                        <if test = 'orgNo  != null and orgNo != ""'>
+                            AND om.ORG_NO = #{orgNo}
+                        </if>
+            INNER JOIN T_ENC_INFO ei ON ei.TARGET_GB_CD = 'ORG' AND mm.ORG_NO = CAST(ei.TARGET_VAL AS UNSIGNED)
+        WHERE 1 = 1
+        <if test = 'pidNo  != null and pidNo != ""'>
+            AND pi.PID_NO = #{pidNo}
+        </if>
+        <if test = 'memberNo  != null and memberNo != ""'>
+            AND pi.MEMBER_NO = #{memberNo}
+        </if>
+        <if test = 'pid  != null and pid != ""'>
+            AND pi.PID_ENC = TO_BASE64(AES_ENCRYPT(#{pid}, ei.ENC_KEY))
+        </if>
+        <if test = 'pidEnc  != null and pidEnc != ""'>
+            AND pi.PID_ENC = #{pidEnc}
+        </if>
+        ORDER BY pi.PID_NO
+        ) T
+        <if test = 'startIndex != null and endIndex != null '>
+            WHERE T.ROW_NUM BETWEEN #{startIndex} AND #{endIndex}
+        </if>
+    </select>
+</mapper>

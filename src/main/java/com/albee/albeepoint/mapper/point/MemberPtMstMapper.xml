@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.albeepoint.core.biz.point.repository.MemberPtMstMapper">
+
+    <select id="selectMemberPtMst" 
+        parameterType="com.albee.albeepoint.api.point.dto.MemberPtSearchDto"  
+        resultType="com.albee.albeepoint.api.point.dto.MemberPtMstDto">
+        SELECT
+              mpm.MEMBER_PT_NO
+             ,mpm.MEMBER_NO
+             ,mpm.CONT_NO
+             ,cm.CONT_NM
+             ,mpm.ORG_NO
+             ,(CASE WHEN pm.BAL_PT IS NULL THEN 0 ELSE pm.BAL_PT  END) AS BAL_PT
+             ,mpm.ISU_PT
+             ,mpm.ISU_CANCEL_PT
+             ,mpm.USE_PT
+             ,mpm.USE_CANCEL_PT
+             ,mpm.EXP_PT
+             ,mpm.REG_USER_ID
+             ,mpm.REG_DT
+             ,mpm.LAST_MOD_USER_ID
+             ,mpm.LAST_MOD_DT
+        FROM T_MEMBER_PT_MST mpm
+            INNER JOIN T_CONT_MST cm ON cm.CONT_NO = mpm.CONT_NO
+            LEFT OUTER JOIN (SELECT CONT_NO, SUM(BAL_PT) BAL_PT
+                               FROM T_PT_MST
+                               WHERE EXP_DT > CURRENT_TIMESTAMP(6) AND BAL_PT > 0
+                                <if test = 'memberPtNo  != null and memberPtNo != ""'>
+                                    AND MEMBER_PT_NO = #{memberPtNo}
+                                </if>
+                                <if test = 'memberNo  != null and memberNo != ""'>
+                                    AND MEMBER_NO = #{memberNo}
+                                </if>
+                                <if test = 'contNo  != null and contNo != ""'>
+                                    AND CONT_NO = #{contNo}
+                                </if>
+                               GROUP BY CONT_NO
+                               )  AS pm
+                               ON pm.CONT_NO = mpm.CONT_NO
+        WHERE 1 = 1
+        <if test = 'memberPtNo  != null and memberPtNo != ""'>
+            AND mpm.MEMBER_PT_NO = #{memberPtNo}
+        </if>
+        <if test = 'memberNo  != null and memberNo != ""'>
+            AND mpm.MEMBER_NO = #{memberNo}
+        </if>
+        <if test = 'contNo  != null and contNo != ""'>
+            AND mpm.CONT_NO = #{contNo}
+        </if>
+        <if test = 'orgNo  != null and orgNo != ""'>
+            AND mpm.ORG_NO = #{orgNo}
+        </if>
+    </select>
+
+    <select id="selectMemberPtMstCalBefAfrBalPt" 
+        parameterType="com.albee.albeepoint.api.point.dto.CalcBefAfrBalDto"  
+        resultType="com.albee.albeepoint.api.point.dto.CalcBefAfrBalDto">
+        SELECT
+             CASE WHEN #{trGbCd} = 'S001' THEN BAL_PT - #{trPt}
+                  WHEN #{trGbCd} = 'SC01' THEN BAL_PT + #{trPt}
+                  WHEN #{trGbCd} = 'U001' THEN BAL_PT + #{trPt}
+                  WHEN #{trGbCd} = 'UC01' THEN BAL_PT - #{trPt}
+                  WHEN #{trGbCd} = 'EX01' THEN BAL_PT + #{trPt}
+             END AS BEF_BAL_PT
+            ,CASE WHEN #{trGbCd} = 'S001' THEN BAL_PT
+                  WHEN #{trGbCd} = 'SC01' THEN BAL_PT
+                  WHEN #{trGbCd} = 'U001' THEN BAL_PT
+                  WHEN #{trGbCd} = 'UC01' THEN BAL_PT
+                  WHEN #{trGbCd} = 'EX01' THEN BAL_PT
+             END AS AFR_BAL_PT
+        FROM T_MEMBER_PT_MST
+        WHERE MEMBER_PT_NO = #{memberPtNo}
+    </select>
+
+
+    <update id="updateUseMemberPtMst" 
+        parameterType="com.albee.albeepoint.api.point.dto.MemberPtMstDto">
+        UPDATE T_MEMBER_PT_MST
+          SET  BAL_PT = BAL_PT - #{usePt}
+              ,USE_PT = USE_PT + #{usePt}
+              ,LAST_MOD_USER_ID = #{lastModUserId, jdbcType=VARCHAR}
+              ,LAST_MOD_DT= CURRENT_TIMESTAMP(6)
+        WHERE  MEMBER_PT_NO = #{memberPtNo}
+    </update>
+
+    <update id="updateUseCancelMemberPtMst" 
+        parameterType="com.albee.albeepoint.api.point.dto.MemberPtMstDto">
+        UPDATE T_MEMBER_PT_MST
+        SET  BAL_PT = BAL_PT + #{useCancelPt}
+            ,USE_CANCEL_PT = USE_CANCEL_PT + #{useCancelPt}
+            ,LAST_MOD_USER_ID = #{lastModUserId, jdbcType=VARCHAR}
+            ,LAST_MOD_DT= CURRENT_TIMESTAMP(6)
+        WHERE  MEMBER_PT_NO = #{memberPtNo}
+    </update>
+
+    <update id="updateIsuMemberPtMst" 
+    parameterType="com.albee.albeepoint.api.point.dto.MemberPtMstDto">
+        UPDATE T_MEMBER_PT_MST
+        SET  BAL_PT = BAL_PT + #{isuPt}
+            ,ISU_PT = ISU_PT + #{isuPt}
+            ,LAST_MOD_USER_ID = #{lastModUserId, jdbcType=VARCHAR}
+            ,LAST_MOD_DT= CURRENT_TIMESTAMP(6)
+        WHERE  MEMBER_PT_NO = #{memberPtNo}
+    </update>
+
+    <update id="updateIsuCancelMemberPtMst" 
+        parameterType="com.albee.albeepoint.api.point.dto.MemberPtMstDto">
+        UPDATE T_MEMBER_PT_MST
+        SET  BAL_PT = BAL_PT - #{isuCancelPt}
+            ,ISU_CANCEL_PT = ISU_CANCEL_PT + #{isuCancelPt}
+            ,LAST_MOD_USER_ID = #{lastModUserId, jdbcType=VARCHAR}
+            ,LAST_MOD_DT= CURRENT_TIMESTAMP(6)
+        WHERE  MEMBER_PT_NO = #{memberPtNo}
+    </update>
+
+    <select id="selectMemberPtMstListTotalCnt" 
+        parameterType="com.albee.albeepoint.api.point.dto.MemberPtSearchDto"  
+        resultType="java.lang.Long">
+        SELECT
+        COUNT(*)
+        FROM T_MEMBER_PT_MST mpm
+            INNER JOIN T_CONT_MST cm ON cm.CONT_NO = mpm.CONT_NO
+                    <if test = 'baseDt  != null and baseDt != ""'>
+                        AND (STR_TO_DATE(#{baseDt}, '%Y%m%d%H%i%S') BETWEEN cm.START_DT AND cm.END_DT)
+                    </if>
+                    <if test = 'contStsCd  != null and contStsCd != ""'>
+                        AND cm.CONT_STS_CD = #{contStsCd}
+                    </if>
+            LEFT OUTER JOIN (SELECT CONT_NO, SUM(BAL_PT) BAL_PT
+                               FROM T_PT_MST
+                               WHERE EXP_DT > CURRENT_TIMESTAMP(6) AND BAL_PT > 0
+                                <if test = 'memberPtNo  != null and memberPtNo != ""'>
+                                    AND MEMBER_PT_NO = #{memberPtNo}
+                                </if>
+                                <if test = 'memberNo  != null and memberNo != ""'>
+                                    AND MEMBER_NO = #{memberNo}
+                                </if>
+                                <if test = 'contNo  != null and contNo != ""'>
+                                    AND CONT_NO = #{contNo}
+                                </if>
+                                GROUP BY CONT_NO
+                               )  AS pm
+                               ON pm.CONT_NO = mpm.CONT_NO
+        WHERE 1 = 1 AND (CASE WHEN pm.BAL_PT IS NULL THEN 0 ELSE pm.BAL_PT END) > 0
+        <if test = 'memberNo  != null and memberNo != ""'>
+            AND mpm.MEMBER_NO = #{memberNo}
+        </if>
+        <if test = 'contNo  != null and contNo != ""'>
+            AND mpm.CONT_NO = #{contNo}
+        </if>
+        <if test = 'contNoList  != null and contNoList != "" and contNoList.size > 0'>
+            AND mpm.CONT_NO IN
+            <foreach collection="contNoList" item="contNo" index="index" separator="," open="(" close=")">
+                #{contNo}
+            </foreach>
+        </if>
+        <if test = 'orgNo  != null and orgNo != ""'>
+            AND mpm.ORG_NO = #{orgNo}
+        </if>
+        <if test = 'baseBalPt  != null and !baseBalPt.equals("")'><![CDATA[
+            AND (CASE WHEN pm.BAL_PT IS NULL THEN 0 ELSE pm.BAL_PT END) > #{baseBalPt}
+        ]]></if>
+    </select>
+
+    <select id="selectMemberPtMstList" 
+        parameterType="com.albee.albeepoint.api.point.dto.MemberPtSearchDto"  
+        resultType="com.albee.albeepoint.api.point.dto.MemberPtMstDto">
+        SELECT
+        T.ROW_NUM AS ROW_NUM
+        ,T.*
+        FROM
+        (
+        SELECT
+        ROW_NUMBER() OVER(ORDER BY mpm.ORG_NO, mpm.MEMBER_NO) ROW_NUM
+            ,mpm.MEMBER_PT_NO
+            ,mpm.MEMBER_NO
+            ,mpm.CONT_NO
+            ,cm.CONT_NM
+            ,mpm.ORG_NO
+            ,(CASE WHEN pm.BAL_PT IS NULL THEN 0 ELSE pm.BAL_PT END) AS BAL_PT
+            ,mpm.ISU_PT
+            ,mpm.ISU_CANCEL_PT
+            ,mpm.USE_PT
+            ,mpm.USE_CANCEL_PT
+            ,mpm.EXP_PT
+            ,mpm.REG_USER_ID
+            ,mpm.REG_DT
+            ,mpm.LAST_MOD_USER_ID
+            ,mpm.LAST_MOD_DT
+        FROM T_MEMBER_PT_MST mpm
+            INNER JOIN T_CONT_MST cm ON cm.CONT_NO = mpm.CONT_NO
+                    <if test = 'baseDt  != null and baseDt != ""'>
+                        AND (#{baseDt, jdbcType=TIMESTAMP} BETWEEN cm.START_DT AND cm.END_DT)
+                    </if>
+                    <if test = 'contStsCd  != null and contStsCd != ""'>
+                        AND cm.CONT_STS_CD = #{contStsCd}
+                    </if>
+            LEFT OUTER JOIN (SELECT CONT_NO, SUM(BAL_PT) BAL_PT
+                    FROM T_PT_MST
+                    WHERE EXP_DT > CURRENT_TIMESTAMP(6) AND BAL_PT > 0
+                    <if test = 'memberPtNo  != null and memberPtNo != ""'>
+                        AND MEMBER_PT_NO = #{memberPtNo}
+                    </if>
+                    <if test = 'memberNo  != null and memberNo != ""'>
+                        AND MEMBER_NO = #{memberNo}
+                    </if>
+                    <if test = 'contNo  != null and contNo != ""'>
+                        AND CONT_NO = #{contNo}
+                    </if>
+                    GROUP BY CONT_NO
+                    )  AS pm
+                    ON pm.CONT_NO = mpm.CONT_NO
+        WHERE 1 = 1 AND (CASE WHEN pm.BAL_PT IS NULL THEN 0 ELSE pm.BAL_PT END) > 0
+        <if test = 'memberNo  != null and memberNo != ""'>
+            AND mpm.MEMBER_NO = #{memberNo}
+        </if>
+        <if test = 'contNo  != null and contNo != ""'>
+            AND mpm.CONT_NO = #{contNo}
+        </if>
+        <if test = 'contNoList  != null and contNoList != "" and contNoList.size > 0'>
+            AND mpm.CONT_NO IN
+            <foreach collection="contNoList" item="contNo" index="index" separator="," open="(" close=")">
+                #{contNo}
+            </foreach>
+        </if>
+        <if test = 'orgNo  != null and orgNo != ""'>
+            AND mpm.ORG_NO = #{orgNo}
+        </if>
+        <if test = 'baseBalPt  != null and !baseBalPt.equals("")'><![CDATA[
+            AND (CASE WHEN pm.BAL_PT IS NULL THEN 0 ELSE pm.BAL_PT END) > #{baseBalPt}
+        ]]></if>
+        ORDER BY mpm.ORG_NO, mpm.MEMBER_NO
+        ) T
+        <if test = 'startIndex != null and endIndex != null '>
+            WHERE T.ROW_NUM BETWEEN #{startIndex} AND #{endIndex}
+        </if>
+    </select>
+</mapper>

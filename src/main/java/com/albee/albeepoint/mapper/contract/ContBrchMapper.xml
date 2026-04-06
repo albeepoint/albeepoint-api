@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.albee.albeepoint.mapper.contract.ContBrchMapper">
+
+    <select id="selectContBrch" parameterType="ContOrgSearch"  resultType="ContBrchEntity">
+        SELECT
+              cb.CONT_NO
+             ,cb.CONT_SEQ
+             ,cb.ORG_NO
+             ,cb.BRCH_NO
+             ,om.ORG_CD
+             ,bm.BRCH_CD
+             ,cb.SAVE_CAN_YN
+             ,cb.USE_CAN_YN
+             ,cb.CONT_BRCH_STS_CD
+             ,cb.TOTAL_ISU_ABLE_CNT
+             ,cb.TOTAL_ISU_ABLE_PT
+             ,cb.REG_USER_ID
+             ,cb.REG_DT
+             ,cb.LAST_MOD_USER_ID
+             ,cb.LAST_MOD_DT
+        FROM CONT_BRCH cb
+            INNER JOIN ORG_MST om ON om.ORG_NO = cb.ORG_NO
+            INNER JOIN BRCH_MST bm ON bm.BRCH_NO = cb.BRCH_NO
+        WHERE 1 = 1
+        <if test = 'contNo  != null and contNo != ""'>
+            AND cb.CONT_NO = #{contNo}
+        </if>
+        <if test = 'contSeq  != null and contSeq != ""'>
+            AND cb.CONT_SEQ = #{contSeq}
+        </if>
+        <if test = 'orgNo  != null and orgNo != ""'>
+            AND cb.ORG_NO = #{orgNo}
+        </if>
+        <if test = 'brchNo  != null and brchNo != ""'>
+            AND cb.BRCH_NO = #{brchNo}
+        </if>
+        <if test = 'orgCd  != null and orgCd != ""'>
+            AND om.ORG_CD = #{orgCd}
+        </if>
+        <if test = 'brchCd  != null and brchCd != ""'>
+            AND bm.BRCH_CD = #{brchCd}
+        </if>
+    </select>
+
+    <select id="selectContBrchListTotalCnt" parameterType="ContOrgSearch"  resultType="Long">
+        SELECT
+        COUNT(*)
+        FROM CONT_BRCH cb
+            INNER JOIN ORG_MST om ON om.ORG_NO = cb.ORG_NO
+            INNER JOIN BRCH_MST bm ON bm.BRCH_NO = cb.BRCH_NO
+        WHERE 1 = 1
+        <if test = 'contNo  != null and contNo != ""'>
+            AND cb.CONT_NO = #{contNo}
+        </if>
+        <if test = 'contSeq  != null and contSeq != ""'>
+            AND cb.CONT_SEQ = #{contSeq}
+        </if>
+        <if test = 'brchNo  != null and brchNo != ""'>
+            AND cb.BRCH_NO = #{brchNo}
+        </if>
+        <if test = 'orgCd  != null and orgCd != ""'>
+            AND om.ORG_CD = #{orgCd}
+        </if>
+        <if test = 'brchCd  != null and brchCd != ""'>
+            AND bm.BRCH_CD = #{brchCd}
+        </if>
+    </select>
+
+    <select id="selectContBrchList" parameterType="ContOrgSearch"  resultType="ContBrchEntity">
+        SELECT
+        T.ROW_NUM AS ROW_NUM
+        ,T.*
+        FROM
+        (
+        SELECT
+        ROW_NUMBER() OVER(ORDER BY cb.CONT_NO, cb.ORG_NO, cb.BRCH_NO) ROW_NUM
+            ,cb.CONT_NO
+            ,cb.CONT_SEQ
+            ,cb.ORG_NO
+            ,cb.BRCH_NO
+            ,om.ORG_CD
+            ,bm.BRCH_CD
+            ,cb.SAVE_CAN_YN
+            ,cb.USE_CAN_YN
+            ,cb.CONT_BRCH_STS_CD
+            ,cb.TOTAL_ISU_ABLE_CNT
+            ,cb.TOTAL_ISU_ABLE_PT
+            ,cb.REG_USER_ID
+            ,cb.REG_DT
+            ,cb.LAST_MOD_USER_ID
+            ,cb.LAST_MOD_DT
+        FROM CONT_BRCH cb
+            INNER JOIN ORG_MST om ON om.ORG_NO = cb.ORG_NO
+            INNER JOIN BRCH_MST bm ON bm.BRCH_NO = cb.BRCH_NO
+        WHERE 1 = 1
+        <if test = 'contNo  != null and contNo != ""'>
+            AND cb.CONT_NO = #{contNo}
+        </if>
+        <if test = 'contSeq  != null and contSeq != ""'>
+            AND cb.CONT_SEQ = #{contSeq}
+        </if>
+        <if test = 'brchNo  != null and brchNo != ""'>
+            AND cb.BRCH_NO = #{brchNo}
+        </if>
+        <if test = 'orgCd  != null and orgCd != ""'>
+            AND om.ORG_CD = #{orgCd}
+        </if>
+        <if test = 'brchCd  != null and brchCd != ""'>
+            AND bm.BRCH_CD = #{brchCd}
+        </if>
+        ORDER BY cb.CONT_NO, cb.ORG_NO, cb.BRCH_NO
+        ) T
+        <if test = 'startIndex != null and endIndex != null '>
+            WHERE T.ROW_NUM BETWEEN #{startIndex} AND #{endIndex}
+        </if>
+    </select>
+</mapper>
