@@ -3,7 +3,9 @@
 
 <mapper namespace="com.albee.albeepoint.mapper.contract.ContBrchMapper">
 
-    <select id="selectContBrch" parameterType="ContOrgSearch"  resultType="ContBrchEntity">
+    <select id="selectContBrch" 
+        parameterType="com.albee.albeepoint.api.contract.dto.ContOrgSearchDto"  
+        resultType="com.albee.albeepoint.api.contract.dto.ContBrchDto">
         SELECT
               cb.CONT_NO
              ,cb.CONT_SEQ
@@ -20,9 +22,9 @@
              ,cb.REG_DT
              ,cb.LAST_MOD_USER_ID
              ,cb.LAST_MOD_DT
-        FROM CONT_BRCH cb
-            INNER JOIN ORG_MST om ON om.ORG_NO = cb.ORG_NO
-            INNER JOIN BRCH_MST bm ON bm.BRCH_NO = cb.BRCH_NO
+        FROM T_ONT_BRCH cb
+            INNER JOIN T_ORG_MST om ON om.ORG_NO = cb.ORG_NO
+            INNER JOIN BT_RCH_MST bm ON bm.BRCH_NO = cb.BRCH_NO
         WHERE 1 = 1
         <if test = 'contNo  != null and contNo != ""'>
             AND cb.CONT_NO = #{contNo}
@@ -44,12 +46,14 @@
         </if>
     </select>
 
-    <select id="selectContBrchListTotalCnt" parameterType="ContOrgSearch"  resultType="Long">
+    <select id="selectContBrchListTotalCnt" 
+        parameterType="com.albee.albeepoint.api.contract.dto.ContOrgSearchDto"  
+        resultType="java.lang.Long">
         SELECT
         COUNT(*)
-        FROM CONT_BRCH cb
-            INNER JOIN ORG_MST om ON om.ORG_NO = cb.ORG_NO
-            INNER JOIN BRCH_MST bm ON bm.BRCH_NO = cb.BRCH_NO
+        FROM T_CONT_BRCH cb
+            INNER JOIN T_ORG_MST om ON om.ORG_NO = cb.ORG_NO
+            INNER JOIN T_BRCH_MST bm ON bm.BRCH_NO = cb.BRCH_NO
         WHERE 1 = 1
         <if test = 'contNo  != null and contNo != ""'>
             AND cb.CONT_NO = #{contNo}
@@ -68,7 +72,9 @@
         </if>
     </select>
 
-    <select id="selectContBrchList" parameterType="ContOrgSearch"  resultType="ContBrchEntity">
+    <select id="selectContBrchList" 
+        parameterType="com.albee.albeepoint.api.contract.dto.ContOrgSearchDto"  
+        resultType="ContBrchEntity">
         SELECT
         T.ROW_NUM AS ROW_NUM
         ,T.*
@@ -91,9 +97,9 @@
             ,cb.REG_DT
             ,cb.LAST_MOD_USER_ID
             ,cb.LAST_MOD_DT
-        FROM CONT_BRCH cb
-            INNER JOIN ORG_MST om ON om.ORG_NO = cb.ORG_NO
-            INNER JOIN BRCH_MST bm ON bm.BRCH_NO = cb.BRCH_NO
+        FROM T_CONT_BRCH cb
+            INNER JOIN T_ORG_MST om ON om.ORG_NO = cb.ORG_NO
+            INNER JOIN T_BRCH_MST bm ON bm.BRCH_NO = cb.BRCH_NO
         WHERE 1 = 1
         <if test = 'contNo  != null and contNo != ""'>
             AND cb.CONT_NO = #{contNo}

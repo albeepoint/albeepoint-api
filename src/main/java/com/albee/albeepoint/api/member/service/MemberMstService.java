@@ -1,7 +1,5 @@
 package com.albee.albeepoint.api.member.service;
- 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+  
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,9 +23,7 @@ import com.albee.albeepoint.api.util.ComUtil;
 import com.albee.albeepoint.api.util.EncUtil;
 import com.albee.albeepoint.api.util.VdUtil;
 import com.albee.albeepoint.mapper.base.t_member_mst.TMemberMst;
-import com.albee.albeepoint.mapper.base.t_member_mst.TMemberMstMapper;
-import com.albee.albeepoint.mapper.base.t_member_pid.TMemberPid;
-import com.albee.albeepoint.mapper.base.t_member_pt_mst.TMemberPtMst;
+import com.albee.albeepoint.mapper.base.t_member_mst.TMemberMstMapper; 
 import com.albee.albeepoint.mapper.base.t_org_mst.TOrgMst;
 import com.albee.albeepoint.mapper.member.MemberMstMapper;
 

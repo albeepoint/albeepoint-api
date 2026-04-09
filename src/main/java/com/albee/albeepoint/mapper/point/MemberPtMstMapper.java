@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 
 import com.albee.albeepoint.api.point.dto.CalcBefAfrBalDto;
 import com.albee.albeepoint.api.point.dto.MemberPtDto;
+import com.albee.albeepoint.api.point.dto.MemberPtMstDto;
 import com.albee.albeepoint.api.point.dto.MemberPtSearchDto;
 import com.albee.albeepoint.api.point.dto.PtSearchDto;
 
@@ -13,7 +14,7 @@ import java.util.List;
 public interface MemberPtMstMapper {
 
 
-    MemberPtDto selectMemberPtMst(MemberPtSearchDto dom);
+    MemberPtMstDto selectMemberPtMst(MemberPtSearchDto dom);
 
 
     CalcBefAfrBalDto selectMemberPtMstCalBefAfrBalPt(CalcBefAfrBalDto dom);
@@ -27,6 +28,6 @@ public interface MemberPtMstMapper {
 
     Long selectMemberPtMstListTotalCnt(PtSearchDto dom);
 
-    List<MemberPtDto> selectMemberPtMstList(PtSearchDto dom);
+    List<MemberPtMstDto> selectMemberPtMstList(PtSearchDto dom);
 
 }

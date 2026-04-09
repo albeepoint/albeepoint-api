@@ -8,7 +8,7 @@ import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 
 
 @Data  
-@Schema(description = "포인트 적립 요청 VO")
+@Schema(description = "포인트 적립 요청 DTO")
 public class IsuReqDto {
     @Schema(description = "기관코드", requiredMode = REQUIRED, maxLength = 20, example = "ORG001")
     private String orgCd;

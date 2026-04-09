@@ -2,19 +2,17 @@ package com.albee.albeepoint.mapper.contract;
 
 import org.springframework.stereotype.Component;
 
+import com.albee.albeepoint.api.contract.dto.ContBrchDto;
+import com.albee.albeepoint.api.contract.dto.ContOrgSearchDto;
+
 import java.util.List;
 
 @Component
 public interface ContBrchMapper {
-    int insertContBrch(ContBrchEntity dom);
 
-    int updateContBrch(ContBrchEntity dom);
+    ContBrchDto selectContBrch(ContOrgSearchDto dom);
 
-    int deleteContBrch(ContBrchEntity dom);
+    Long selectContBrchListTotalCnt(ContOrgSearchDto dom);
 
-    ContBrchEntity selectContBrch(ContOrgSearch dom);
-
-    Long selectContBrchListTotalCnt(ContOrgSearch dom);
-
-    List<ContBrchEntity> selectContBrchList(ContOrgSearch dom);
+    List<ContBrchDto> selectContBrchList(ContOrgSearchDto dom);
 }

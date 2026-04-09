@@ -9,18 +9,33 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.albee.albeepoint.api.common.constant.ErrorCode;
 import com.albee.albeepoint.api.common.dto.ResultListDto;
+import com.albee.albeepoint.api.common.service.EncInfoService;
 import com.albee.albeepoint.api.contract.constant.EnumCont;
 import com.albee.albeepoint.api.contract.dto.ContRealDto;
+import com.albee.albeepoint.api.contract.dto.ContSearchDto;
 import com.albee.albeepoint.api.contract.service.ContMstService;
 import com.albee.albeepoint.api.member.dto.MemberMstDto;
 import com.albee.albeepoint.api.member.dto.MemberSearchDto;
 import com.albee.albeepoint.api.member.service.MemberMstService;
+import com.albee.albeepoint.api.org.service.OrgMstService;
+import com.albee.albeepoint.api.point.dto.IsuReqDto;
+import com.albee.albeepoint.api.point.dto.MemberContPtListResDto;
+import com.albee.albeepoint.api.point.dto.MemberContPtResDto;
 import com.albee.albeepoint.api.point.dto.MemberPtDto;
+import com.albee.albeepoint.api.point.dto.MemberPtMstDto;
+import com.albee.albeepoint.api.point.dto.MemberPtSearchDto;
 import com.albee.albeepoint.api.point.dto.PtSearchDto;
+import com.albee.albeepoint.api.util.ComUtil;
 import com.albee.albeepoint.api.util.DateUtil;
+import com.albee.albeepoint.api.util.EncUtil;
 import com.albee.albeepoint.api.util.StrUtil;
 import com.albee.albeepoint.api.util.VdUtil;
+import com.albee.albeepoint.mapper.base.t_cont_mst.TContMst;
+import com.albee.albeepoint.mapper.base.t_member_mst.TMemberMst;
+import com.albee.albeepoint.mapper.base.t_member_pt_mst.TMemberPtMst;
+import com.albee.albeepoint.mapper.base.t_org_mst.TOrgMstMapper;
 import com.albee.albeepoint.mapper.point.MemberPtMstMapper;
 
 import java.util.ArrayList;
@@ -32,6 +47,12 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class MemberPtMstService {
+    @Autowired
+    private OrgMstService orgMstService;
+
+    @Autowired
+    private EncInfoService encInfoService;
+
     @Autowired
     private ContMstService contService;
     
@@ -50,42 +71,48 @@ public class MemberPtMstService {
     @Autowired
     private PtUseUtilService ptUseUtilService; 
 
-    public MemberPtMstEntity isuMemberPtMst(MemberPtMstEntity mbrPtEty, IsuReqDto req){
-        MemberMstEntity mbrEty = req.getMember();
-        Long isuReqPt = req.getIsuReqPt();
+    /* 회원포인트 발급 */
+    /* 회원아이디에 해당하는 회원에게 특정 계약, 특정 지점을 대상으로 포인트 발급 처리.
+        회원정보 조회->계약정보조회->회원포인트발급처리 */
+    public MemberPtMstDto isuMemberPtMst(TMemberPtMst mbrPtEty, IsuReqDto reqDto){
+        MemberMstDto mbrMstDto = this.mbrService.getMemberMst(new MemberSearchDto(reqDto.getMemberId()));
+ 
+        Long isuReqPt = reqDto.getIsuReqPt();
 
-        MemberPtDto mbrPtDto = new MemberPtDto(mbrEty.getMemberId(), req.getContNo(), mbrEty.getOrgCd());
-        mbrPtDto.setMemberNo(mbrEty.getMemberNo());
-        mbrPtDto.setOrgNo(mbrEty.getOrgNo());
+        MemberPtDto mbrPtDto = new MemberPtDto(mbrMstDto.getMemberId(), reqDto.getContNo(), mbrMstDto.getOrgCd());
+        mbrPtDto.setMemberNo(mbrMstDto.getMemberNo());
+        mbrPtDto.setOrgNo(mbrMstDto.getOrgNo());
         mbrPtDto.setIsuPt(isuReqPt);
         mbrPtDto.setMemberPtNo(VdUtil.isNotEmpty(mbrPtEty) ? mbrPtEty.getMemberPtNo() : null);
 
+        
+
         if(VdUtil.isEmpty(mbrPtEty)){
-            mbrPtEty = new MemberPtMstEntity(mbrPtDto);
+            mbrPtEty = new TMemberPtMst(mbrPtDto);
             mbrPtEty.setIsu(isuReqPt);
-            mbrPtEty = regMemberPtMst(mbrPtEty);
+            mbrPtEty = this.regMemberPtMst(mbrPtEty);
         }else{
             updateIsuMemberPtMst(mbrPtDto);
-            mbrPtEty = getMemberPtMst(new MemberPtSearch(mbrPtDto.getMemberPtNo()));
+            mbrPtEty = this.getMemberPtMst(new MemberPtSearchDto(mbrPtDto.getMemberPtNo()));
         }
 
         return mbrPtEty;
     }
 
     public void updateIsuMemberPtMst(MemberPtDto mbrPtDto){
-        VdUtil.ec(mbrPtMapper.updateIsuMemberPtMst(mbrPtDto) <= 0, BIZ_ERR_001043);
+        VdUtil.ec(mbrPtMapper.updateIsuMemberPtMst(mbrPtDto) <= 0, ErrorCode.BIZ_ERR_001043);
     }
 
     public void updateIsuCancelMemberPtMst(MemberPtDto mbrPtDto){
-        VdUtil.ec(mbrPtMapper.updateIsuCancelMemberPtMst(mbrPtDto) <= 0, BIZ_ERR_001043);
+        VdUtil.ec(mbrPtMapper.updateIsuCancelMemberPtMst(mbrPtDto) <= 0, ErrorCode.BIZ_ERR_001043);
     }
 
     public void updateUseMemberPtMst(MemberPtDto mbrPtDto){
-        VdUtil.ec(mbrPtMapper.updateUseMemberPtMst(mbrPtDto) <= 0, BIZ_ERR_001043);
+        VdUtil.ec(mbrPtMapper.updateUseMemberPtMst(mbrPtDto) <= 0, ErrorCode.BIZ_ERR_001043);
     }
 
     public void updateUseCancelMemberPtMst(MemberPtDto mbrPtDto){
-        VdUtil.ec(mbrPtMapper.updateUseCancelMemberPtMst(mbrPtDto) <= 0, BIZ_ERR_001043);
+        VdUtil.ec(mbrPtMapper.updateUseCancelMemberPtMst(mbrPtDto) <= 0, ErrorCode.BIZ_ERR_001043);
     }
 
 
@@ -102,26 +129,26 @@ public class MemberPtMstService {
         MemberMstDto mbrEty = mbrService.getMemberMstByIdOrPidWec(search);
         ptSearch.setMemberNo(mbrEty.getMemberNo());
 
-        ResultListDto<MemberPtMstEntity> listDto = getMemberPtMstList(ptSearch);
+        ResultListDto<MemberPtMstDto> listDto = getMemberPtMstList(ptSearch);
 
-        MemberContPtListResIVo mbrContPtListResVo = new MemberContPtListResIVo();
-        mbrContPtListResVo.setOrgCd(mbrEty.getOrgCd());
-        mbrContPtListResVo.setMemberNo(mbrEty.getMemberNo());
-        mbrContPtListResVo.setMemberId(mbrEty.getMemberId());
+        MemberContPtListResDto mbrContPtListResDto = new MemberContPtListResDto();
+        mbrContPtListResDto.setOrgCd(mbrEty.getOrgCd());
+        mbrContPtListResDto.setMemberNo(mbrEty.getMemberNo());
+        mbrContPtListResDto.setMemberId(mbrEty.getMemberId());
 
-        List<MemberContPtResIVo> resList = new ArrayList<>();
+        List<MemberPtDto> resList = new ArrayList<>();
 
         if(VdUtil.isNotEmpty(listDto) && VdUtil.isNotEmpty(listDto.getList())){
-            mbrContPtListResVo.setTotalContCnt(listDto.getTotalCnt());
-            mbrContPtListResVo.setTotalBalPt(listDto.getList().stream().collect(Collectors.summingLong(MemberPtMstEntity::getBalPt)));
+            mbrContPtListResDto.setTotalContCnt(listDto.getTotalCnt());
+            mbrContPtListResDto.setTotalBalPt(listDto.getList().stream().collect(Collectors.summingLong(MemberPtMstDto::getBalPt)));
 
             Long totalAblePt = 0L;
-            for(MemberPtMstEntity mbrPtEty : listDto.getList()){
-                ContMstEntity cont = contService.getContMstWec(new ContSearch(mbrPtEty.getContNo()));
-                ContRealDto contRealDto = ptUtilService.getContForTr(cont, mbrPtEty.getOrgNo(), ptSearch.getMemberNo());
-                Long tmpAblePt = ptUseUtilService.calcMemberPtMstAblePt(contRealDto, null, mbrEty.getMemberNo(), null);
+            for(MemberPtMstDto mbrPtEty : listDto.getList()){
+                TContMst contMst = this.contService.getContMstWec(mbrPtEty.getContNo());
+                ContRealDto contRealDto = this.ptUtilService.getContForTr(contMst, mbrPtEty.getOrgNo(), ptSearch.getMemberNo());
+                Long tmpAblePt = this.ptUseUtilService.calcMemberPtMstAblePt(contRealDto, null, mbrEty.getMemberNo(), null);
                 totalAblePt = totalAblePt + tmpAblePt; // 사용가능 포인트 계산
-                MemberContPtResIVo mbrContPt = new MemberContPtResIVo();
+                MemberContPtResDto mbrContPt = new MemberContPtResDto();
                 mbrContPt.setMemberPtNo(mbrPtEty.getMemberPtNo());
                 mbrContPt.setContNo(mbrPtEty.getContNo());
                 mbrContPt.setContNm(contRealDto.getContNm());
@@ -132,7 +159,7 @@ public class MemberPtMstService {
                 resList.add(mbrContPt);
             }
 
-            mbrContPtListResVo.setTotalAblePt(totalAblePt);
+            mbrContPtListResDto.setTotalAblePt(totalAblePt);
 
             // 순서 정렬 : 사용가능PT 많은순 > 잔여PT 많은순 > 최초생성일빠른순
             StrUtil.println(resList, "resList 정렬 전");
@@ -144,39 +171,39 @@ public class MemberPtMstService {
                 memberContPtResVo.setRowNum(++rowNum);
             }
         }else{
-            mbrContPtListResVo.setTotalContCnt(0L);
-            mbrContPtListResVo.setTotalAblePt(0L);
-            mbrContPtListResVo.setTotalBalPt(0L);
+            mbrContPtListResDto.setTotalContCnt(0L);
+            mbrContPtListResDto.setTotalAblePt(0L);
+            mbrContPtListResDto.setTotalBalPt(0L);
         }
 
-        mbrContPtListResVo.setList(resList);
-        return mbrContPtListResVo;
+        mbrContPtListResDto.setList(resList);
+        return mbrContPtListResDto;
     }
 
 
-    public MemberPtMstEntity regMemberPtMst(MemberPtMstEntity mbrPtEty) {
+    public MemberPtMstDto regMemberPtMst(MemberPtMstEntity mbrPtEty) {
         long newMbrPtNo = mbrPtMapper.selectSeqMemberPtMstNo();
         mbrPtEty.setMemberPtNo(newMbrPtNo);
         mbrPtMapper.insertMemberPtMst(mbrPtEty);
-        return mbrPtMapper.selectMemberPtMst(new MemberPtSearch(newMbrPtNo));
+        return this.mbrPtMapper.selectMemberPtMst(new MemberPtSearchDto(newMbrPtNo));
     }
 
-    public MemberPtMstEntity getMemberPtMst(MemberPtSearch dom) {
-        MemberPtMstEntity memberPtMst = mbrPtMapper.selectMemberPtMst(dom);
+    public MemberPtMstDto getMemberPtMst(MemberPtSearchDto dom) {
+        MemberPtMstDto memberPtMst = this.mbrPtMapper.selectMemberPtMst(dom);
         return memberPtMst;
     }
 
-    public MemberPtMstEntity getMemberPtMstWec(MemberPtSearch dom) {
-        MemberPtMstEntity memberPtMst = getMemberPtMst(dom);
-        return (MemberPtMstEntity)VdUtil.emptyEc(memberPtMst, BIZ_ERR_001047);
+    public MemberPtMstDto getMemberPtMstWec(MemberPtSearchDto dom) {
+        MemberPtMstDto memberPtMst = this.getMemberPtMst(dom);
+        return (MemberPtMstDto)VdUtil.emptyEc(memberPtMst, ErrorCode.BIZ_ERR_001047);
     }
 
-    public ResultListDto<MemberPtDto> getMemberPtMstList(PtSearchDto dom) {
-        ResultListDto<MemberPtDto> result = new ResultListDto<>();
+    public ResultListDto<MemberPtMstDto> getMemberPtMstList(PtSearchDto dom) {
+        ResultListDto<MemberPtMstDto> result = new ResultListDto<>();
         Long totalCnt = mbrPtMapper.selectMemberPtMstListTotalCnt(dom);
         result.setTotalCnt(totalCnt != null ? totalCnt : 0L);
         if(result.getTotalCnt() > 0){
-            List<MemberPtDto> list = mbrPtMapper.selectMemberPtMstList(dom);
+            List<MemberPtMstDto> list = this.mbrPtMapper.selectMemberPtMstList(dom);
             result.setList(list);
             result.setPageCnt(list != null && list.size() > 0 ? list.size() : 0);
         }

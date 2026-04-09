@@ -9,9 +9,29 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.albee.albeepoint.api.common.constant.ErrorCode;
+import com.albee.albeepoint.api.contract.constant.EnumCont;
+import com.albee.albeepoint.api.contract.dto.ContMstDto;
+import com.albee.albeepoint.api.contract.dto.ContOrgSearchDto;
+import com.albee.albeepoint.api.contract.dto.ContRealDto;
 import com.albee.albeepoint.api.contract.dto.ContSearchDto;
 import com.albee.albeepoint.api.contract.service.ContMstService;
-import com.albee.albeepoint.api.point.dto.BasePtReqDto; 
+import com.albee.albeepoint.api.contract.service.ContOrgService;
+import com.albee.albeepoint.api.org.constant.EnumOrg;
+import com.albee.albeepoint.api.point.constant.EnumPoint;
+import com.albee.albeepoint.api.point.dto.BasePtReqDto;
+import com.albee.albeepoint.api.point.dto.PtMstTargetDto;
+import com.albee.albeepoint.api.point.dto.PtSearchDto;
+import com.albee.albeepoint.api.point.dto.TrHistDetailSumDto;
+import com.albee.albeepoint.api.point.dto.TrHistDto;
+import com.albee.albeepoint.api.point.dto.TrHistSearchDto;
+import com.albee.albeepoint.api.util.ComUtil;
+import com.albee.albeepoint.api.util.DateUtil;
+import com.albee.albeepoint.api.util.VdUtil;
+import com.albee.albeepoint.mapper.base.t_cont_mst.TContMst;
+import com.albee.albeepoint.mapper.base.t_cont_org.TContOrg;
+import com.albee.albeepoint.mapper.base.t_tr_hist.TTrHist;
+import com.albee.albeepoint.mapper.point.PtMstMapper; 
 
 @Log4j2
 @RequiredArgsConstructor
@@ -39,7 +59,10 @@ public class PtUseUtilService {
      */
     public BasePtReqDto getPtReqUseInfo(BasePtReqDto req){
         // 계약정보 조회 및 사용 가능 기간 체크
-        req.setCont(this.contService.getContMstWec(new ContSearchDto(req.getContNo())));
+        TContMst contMst = this.contService.getContMstWec(req.getContNo());
+        VdUtil.emptyEc(contMst, ErrorCode.BIZ_ERR_001009);
+        ContMstDto contMstDto = (ContMstDto) ComUtil.objectCopy(contMst, ContMstDto.class);
+        req.setCont(contMstDto);
 
         // 계약마스터엔티티는 반드시 서브계약까지 감안한 contRealDto 를 통해 설정해야 함
         ContRealDto contRealDto = ptUtilService.getContForTr(req.getCont(), req.getOrgNo(), req.getBrchNo());
@@ -47,14 +70,14 @@ public class PtUseUtilService {
         req.setContReal(contRealDto);
 
         // 사용 및 사용취소시에 모두 사용기간이내이어야 함
-        DateUtil.betweenTsEc(req.getCont().getUseStartDt(), req.getCont().getUseEndDt(), BIZ_ERR_001016, "사용기간 아님");
+        DateUtil.betweenTsEc(req.getCont().getUseStartDt(), req.getCont().getUseEndDt(), ErrorCode.BIZ_ERR_001016, "사용기간 아님");
 
         // 기관정보 조회 및 사용가능 기관 체크
         req.setOrg(ptUtilService.checkOrg(req));
-        ContOrgEntity contOrg = contOrgService.getContOrg(new ContOrgSearch(req.getContNo(), null, req.getOrg().getOrgNo()));
+        TContOrg contOrg = this.contOrgService.getContOrg(new ContOrgSearchDto(req.getContNo(), null, req.getOrg().getOrgNo()));
         VdUtil.ec(VdUtil.isEmpty(contOrg) || VdUtil.isNotEqual(contOrg.getContOrgStsCd(), EnumCont.ContOrgSts.NORMAL)
-                , BIZ_ERR_001034, "계약 기관이 아님");
-        VdUtil.notEqualEc(contOrg.getUseCanYn(), "Y", BIZ_ERR_001057, "사용 불가 기관");
+                , ErrorCode.BIZ_ERR_001034, "계약 기관이 아님");
+        VdUtil.notEqualEc(contOrg.getUseCanYn(), "Y", ErrorCode.BIZ_ERR_001057, "사용 불가 기관");
 
         // 지점정보 조회 및 사용가능 지점 체크
         if(VdUtil.isEmpty(req.getBrch())) {
@@ -64,7 +87,7 @@ public class PtUseUtilService {
         // 지점정보가 존재하는 경우 사용가능 여부 체크
         if(VdUtil.isNotEmpty(req.getBrch())) {
             if (VdUtil.isNotEqual(contOrg.getBrchPolicyTypeCd(), EnumOrg.BrchPolicyType.ALL)) {
-                VdUtil.notEqualEc(req.getBrch().getSaveCanYn(), "Y", BIZ_ERR_001058, "사용 불가 지점");
+                VdUtil.notEqualEc(req.getBrch().getSaveCanYn(), "Y", ErrorCode.BIZ_ERR_001058, "사용 불가 지점");
             }
         }
 
@@ -90,7 +113,7 @@ public class PtUseUtilService {
 
         // 사용가능포인트 조회인 경우 사용요청포인트 미입력일 수 있으므로 일단 잔여포인트로 설정
         if(isForUse){
-            VdUtil.ec(VdUtil.isEmpty(useReqPt), BIZ_ERR_001074, "사용 포인트 필수 입력");
+            VdUtil.ec(VdUtil.isEmpty(useReqPt), ErrorCode.BIZ_ERR_001074, "사용 포인트 필수 입력");
         }else{
             if (VdUtil.isEmpty(useReqPt)) {
                 useReqPt = ptTarget.getBalPt();
@@ -108,7 +131,7 @@ public class PtUseUtilService {
             if (VdUtil.isEqual(contReal.getOnceUseLimitTypeCd(), EnumCont.OnceUseLimitType.NONE)) {
                 ablePt = useReqPt;
             } else if (VdUtil.isEqual(contReal.getOnceUseLimitTypeCd(), EnumCont.OnceUseLimitType.FIX)) {
-                VdUtil.emptyEc(contReal.getOnceUseFixPt(), BIZ_ERR_001068, "계약정보 1회 고정사용포인트 오류");
+                VdUtil.emptyEc(contReal.getOnceUseFixPt(), ErrorCode.BIZ_ERR_001068, "계약정보 1회 고정사용포인트 오류");
                 if(useReqPt > contReal.getOnceUseFixPt()){
                     if(contBalPt >= contReal.getOnceUseFixPt()){
                         if(ptTarget.getBalPt() >= contReal.getOnceUseFixPt()){
@@ -125,7 +148,7 @@ public class PtUseUtilService {
                 }
                 ablePt = contReal.getOnceUseFixPt(); // 입력한 사용요청포인트 관계없이 계약상 정의된 포인트로 설정
             } else if (VdUtil.isEqual(contReal.getOnceUseLimitTypeCd(), EnumCont.OnceUseLimitType.MIN)) {
-                VdUtil.emptyEc(contReal.getOnceUseMinPt(), BIZ_ERR_001069, "계약정보 1회 최소사용포인트 오류");
+                VdUtil.emptyEc(contReal.getOnceUseMinPt(), ErrorCode.BIZ_ERR_001069, "계약정보 1회 최소사용포인트 오류");
                 if(useReqPt < contReal.getOnceUseMinPt()){
                     log.info("사용요청포인트가 1회 최소사용포인트 보다 작아서 사용가능포인트 0 응답");
                     ablePt = 0L;
@@ -133,8 +156,8 @@ public class PtUseUtilService {
                     ablePt = useReqPt;
                 }
             } else if (VdUtil.isEqual(contReal.getOnceUseLimitTypeCd(), EnumCont.OnceUseLimitType.MAX)) {
-                VdUtil.emptyEc(contReal.getOnceUseMaxPt(), BIZ_ERR_001071, "계약정보 1회 최대사용포인트 오류");
-                VdUtil.ec(useReqPt > contReal.getOnceUseMaxPt(), BIZ_ERR_001072, "사용요청포인트가 1회 최대사용포인트 보다 큼");
+                VdUtil.emptyEc(contReal.getOnceUseMaxPt(), ErrorCode.BIZ_ERR_001071, "계약정보 1회 최대사용포인트 오류");
+                VdUtil.ec(useReqPt > contReal.getOnceUseMaxPt(), ErrorCode.BIZ_ERR_001072, "사용요청포인트가 1회 최대사용포인트 보다 큼");
                 if(useReqPt > contReal.getOnceUseMaxPt()){
                     log.info("사용요청포인트가 1회 최대사용포인트 보다 커서 사용가능포인트 0 응답");
                     ablePt = 0L;
@@ -142,8 +165,8 @@ public class PtUseUtilService {
                     ablePt = useReqPt;
                 }
             } else if (VdUtil.isEqual(contReal.getOnceUseLimitTypeCd(), EnumCont.OnceUseLimitType.BOTH)) {
-                VdUtil.emptyEc(contReal.getOnceUseMinPt(), BIZ_ERR_001069, "계약정보 1회 최소사용포인트 오류");
-                VdUtil.emptyEc(contReal.getOnceUseMaxPt(), BIZ_ERR_001071, "계약정보 1회 최대사용포인트 오류");
+                VdUtil.emptyEc(contReal.getOnceUseMinPt(), ErrorCode.BIZ_ERR_001069, "계약정보 1회 최소사용포인트 오류");
+                VdUtil.emptyEc(contReal.getOnceUseMaxPt(), ErrorCode.BIZ_ERR_001071, "계약정보 1회 최대사용포인트 오류");
                 if((useReqPt < contReal.getOnceUseMinPt()) || (useReqPt > contReal.getOnceUseMaxPt())){
                     log.info("사용요청포인트가 1회최소사용포인트보다 작거나, 1회최대사용포인트보다 커서 사용가능포인트 0 응답");
                     ablePt = 0L;
@@ -151,7 +174,7 @@ public class PtUseUtilService {
                     ablePt = useReqPt;
                 }
             } else if (VdUtil.isEqual(contReal.getOnceUseLimitTypeCd(), EnumCont.OnceUseLimitType.RATE)) {
-                VdUtil.emptyEc(contReal.getOnceUsePurchaseRate(), BIZ_ERR_001073, "계약정보 1회 구매금액발행비율 오류");
+                VdUtil.emptyEc(contReal.getOnceUsePurchaseRate(), ErrorCode.BIZ_ERR_001073, "계약정보 1회 구매금액발행비율 오류");
                 log.info("구매금액 미입력으로 사용가능포인트 0 응답");
                 // 사용요청면서 1회 사용제한조건이 구매금액비율인 경우, 구매금액 미입력이면 ==> 0으로 응답
                 ablePt = VdUtil.isNotEmpty(purchaseAmt) ? Math.round(purchaseAmt * contReal.getOnceUsePurchaseRate()) : 0L;
@@ -167,7 +190,7 @@ public class PtUseUtilService {
 
         // 기간별
         if(VdUtil.isNotEqual(contReal.getUsePeriodLimitTypeCd(), EnumCont.UsePeriodLimitType.NONE)){
-            PtSearch ptSearch = new PtSearch(member.getMemberNo(), contReal.getContNo());
+            TrHistSearchDto ptSearch = new TrHistSearchDto(member.getMemberNo(), contReal.getContNo());
             String useStartDay = DateUtil.getFirstDayString(contReal.getUsePeriodLimitTypeCd().toString(), DateUtil.getTodayString());
             String useEndDay = DateUtil.getLastDayString(contReal.getUsePeriodLimitTypeCd().toString(), DateUtil.getTodayString());
             ptSearch.setStartDt(DateUtil.convStringToTimestampForStart(useStartDay));
@@ -226,9 +249,9 @@ public class PtUseUtilService {
         }
 
         // 사용기간에 제한 있으면 사용종료일 또는 소멸일자로 계산해야 함
-        Long realBalPtSum = ptMapper.selectBalPtSum(new PtSearch(memberNo, contReal.getContNo()));
+        Long realBalPtSum = ptMapper.selectBalPtSum(new PtSearchDto(memberNo, contReal.getContNo()));
         if(VdUtil.isNotEmpty(contBalPt)) {
-            VdUtil.ec(contBalPt < realBalPtSum, BIZ_ERR_001124, "사용 포인트 계산 오류(calcMemberPtMstAblePt)");
+            VdUtil.ec(contBalPt < realBalPtSum, ErrorCode.BIZ_ERR_001124, "사용 포인트 계산 오류(calcMemberPtMstAblePt)");
             realBalPtSum = contBalPt; // 계약잔여포인트 입력시 사용표인트 계산을 위한 것이므로 잔여포인트합계로 move
         }
 
@@ -264,13 +287,13 @@ public class PtUseUtilService {
 
         // 기간별
         if(VdUtil.isNotEqual(contReal.getUsePeriodLimitTypeCd(), EnumCont.UsePeriodLimitType.NONE)){
-            PtSearch ptSearch = new PtSearch(memberNo, contReal.getContNo());
+            TrHistSearchDto ptSearch = new TrHistSearchDto(memberNo, contReal.getContNo());
             String useStartDay = DateUtil.getFirstDayString(contReal.getUsePeriodLimitTypeCd().toString(), DateUtil.getTodayString());
             String useEndDay = DateUtil.getLastDayString(contReal.getUsePeriodLimitTypeCd().toString(), DateUtil.getTodayString());
             ptSearch.setStartDt(DateUtil.convStringToTimestampForStart(useStartDay));
             ptSearch.setEndDt(DateUtil.convStringToTimestampForEnd(useEndDay));
 
-            TrHistDetailSumDto trSum = thdService.getTrHistDetailUseSum(ptSearch);
+            TrHistDetailSumDto trSum = this.thdService.getTrHistDetailUseSum(ptSearch);
 
             // maxCnt 보다 지금 사용하려는 1건 포함한 전체 사용건수보다 크거나 같으면 사용횟수 초과로 사용 불가
             if(contReal.getUsePeriodMaxCnt() <= (trSum.getNetUseCntSum() + 1)){
@@ -290,29 +313,30 @@ public class PtUseUtilService {
     }
 
     // 사용취소를 위한 사용 원거래찾기. 원거래일련번호 입력시에는 원거래일련번호로 찾고, 아니면 가장 최근의 사용건으로 정함
-    public TrHistEntity getOrglTrHistForUseCancel(Long memberNo, Long ucReqPt, Long orglTrSno){
+    public TrHistDto getOrglTrHistForUseCancel(Long memberNo, Long ucReqPt, Long orglTrSno){
 
-        TrHistEntity orglTh = null;
-        TrHistSearch search = new TrHistSearch();
+        TrHistDto orglTh = null;
+        TrHistSearchDto search = new TrHistSearchDto();
         search.setMemberNo(memberNo);
 
         if(VdUtil.isNotEmpty(orglTrSno)) {
             search.setTrSno(orglTrSno);
-            orglTh = thService.getTrHist(search);
+            TTrHist orglThEty = this.thService.getTrHist(orglTrSno);
+            orglTh = (TrHistDto) ComUtil.objectCopy(orglThEty, TrHistDto.class);
         }else{
             // 가장 최근 사용거래 조회
             search.setTrGbCd(EnumPoint.TrGb.U001);
-            orglTh = thService.getLastOneTrHist(search);
+            orglTh = this.thService.getLastOneTrHist(search);
         }
 
         // TR_HIST 체크
-        VdUtil.notEqualEc(orglTh.getMemberNo(), memberNo, BIZ_ERR_001115, "취소 대상 원거래 없음(회원정보와 원거래 내용 불일치)");
+        VdUtil.notEqualEc(orglTh.getMemberNo(), memberNo, ErrorCode.BIZ_ERR_001115, "취소 대상 원거래 없음(회원정보와 원거래 내용 불일치)");
 
         // TR_HIST 체크
-        VdUtil.emptyEc(orglTh, BIZ_ERR_001115, "취소 대상 원거래 없음");
+        VdUtil.emptyEc(orglTh, ErrorCode.BIZ_ERR_001115, "취소 대상 원거래 없음");
 
         if(VdUtil.isNotEmpty(ucReqPt)){
-            VdUtil.ec(ucReqPt > orglTh.getTrPt(), BIZ_ERR_001117, "취소요청 포인트가 원거래 포인트보다 클 수 없음");
+            VdUtil.ec(ucReqPt > orglTh.getTrPt(), ErrorCode.BIZ_ERR_001117, "취소요청 포인트가 원거래 포인트보다 클 수 없음");
         }
 
         return orglTh;

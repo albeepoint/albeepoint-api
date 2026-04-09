@@ -2,9 +2,7 @@ package com.albee.albeepoint.api.contract.service;
  
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+ 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +21,7 @@ import com.albee.albeepoint.mapper.base.t_brch_mst.TBrchMst;
 import com.albee.albeepoint.mapper.base.t_cont_brch.TContBrch;
 import com.albee.albeepoint.mapper.base.t_cont_brch.TContBrchMapper;
 import com.albee.albeepoint.mapper.base.t_org_mst.TOrgMst;
+import com.albee.albeepoint.mapper.contract.ContBrchMapper;
 
 import java.util.List;
  
@@ -60,10 +59,10 @@ public class ContBrchService {
 
     public ResultListDto<ContBrchDto> getContBrchList(ContOrgSearchDto dom) {
         ResultListDto<ContBrchDto> result = new ResultListDto<>();
-        Long totalCnt = contBrchMapper.selectContBrchListTotalCnt(dom);
+        Long totalCnt = this.contBrchMapper.selectContBrchListTotalCnt(dom);
         result.setTotalCnt(totalCnt != null ? totalCnt : 0L);
         if(result.getTotalCnt() > 0){
-            List<ContBrchDto> list = contBrchMapper.selectContBrchList(dom);
+            List<ContBrchDto> list = this.contBrchMapper.selectContBrchList(dom);
             result.setList(list);
             result.setPageCnt(list != null && list.size() > 0 ? list.size() : 0);
         }

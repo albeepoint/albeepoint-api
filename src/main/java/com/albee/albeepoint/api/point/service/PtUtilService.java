@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.albee.albeepoint.api.common.constant.ErrorCode;
+import com.albee.albeepoint.api.common.dto.ResultListDto;
+import com.albee.albeepoint.api.common.exception.AlbeepointException;
 import com.albee.albeepoint.api.contract.constant.EnumCont;
 import com.albee.albeepoint.api.contract.dto.ContLocalLimitDto;
 import com.albee.albeepoint.api.contract.dto.ContOrgSearchDto;
@@ -18,6 +20,8 @@ import com.albee.albeepoint.api.contract.dto.ContRealDto;
 import com.albee.albeepoint.api.contract.dto.ContSearchDto;
 import com.albee.albeepoint.api.contract.service.ContBrchService;
 import com.albee.albeepoint.api.contract.service.ContMstService;
+import com.albee.albeepoint.api.contract.service.ContOrgService;
+import com.albee.albeepoint.api.contract.service.SubContMstService;
 import com.albee.albeepoint.api.member.constant.EnumMember;
 import com.albee.albeepoint.api.member.dto.MemberSearchDto;
 import com.albee.albeepoint.api.member.service.MemberMstService;
@@ -28,7 +32,11 @@ import com.albee.albeepoint.api.org.service.OrgMstService;
 import com.albee.albeepoint.api.point.dto.BasePtReqDto;
 import com.albee.albeepoint.api.util.ComUtil;
 import com.albee.albeepoint.api.util.DateUtil;
-import com.albee.albeepoint.api.util.VdUtil; 
+import com.albee.albeepoint.api.util.VdUtil;
+import com.albee.albeepoint.mapper.base.t_brch_mst.TBrchMst;
+import com.albee.albeepoint.mapper.base.t_cont_brch.TContBrch;
+import com.albee.albeepoint.mapper.base.t_cont_mst.TContMst;
+import com.albee.albeepoint.mapper.base.t_cont_org.TContOrg; 
 
 @Log4j2
 @RequiredArgsConstructor
@@ -73,28 +81,29 @@ public class PtUtilService {
     /*
         적립/사용에 적용할 계약 추출(서브 계약 존재시 서브 계약) 및 기관/지점 제약 사항 조회
      */
-    public ContRealDto getContForTr(ContMstEntity cont, Long orgNo, Long brchNo) {
+    public ContRealDto getContForTr(TContMst contMst, Long orgNo, Long brchNo) {
         ContRealDto contRealDto = new ContRealDto();
 
         // 계약정보 설정(서브계약 존재하면 서브계약정보로 설정)
         ContLocalLimitDto localLimit = null;
 
         // 기본 계약정보 조회. 계약번호, 계약상태, 계약기간
-        VdUtil.notEqualEc(cont.getContStsCd(), EnumCont.ContSts.NORMAL, ErrorCode.BIZ_ERR_001018, "계약상태 정상 아님");
-        VdUtil.ec(!DateUtil.isBetween(cont.getStartDt(), cont.getEndDt()), ErrorCode.BIZ_ERR_001013, "계약기간 아님");
+        VdUtil.notEqualEc(contMst.getContStsCd(), EnumCont.ContSts.NORMAL, ErrorCode.BIZ_ERR_001018, "계약상태 정상 아님");
+        VdUtil.ec(!DateUtil.isBetween(contMst.getStartDt().toLocalDate(), contMst.getEndDt().toLocalDate()), 
+            ErrorCode.BIZ_ERR_001013, "계약기간 아님");
 
         /// 서브계약 체크
         // 기관코드, 지점코드 입력시 계약지점 테이블 부터 체크
         // 계약기관 조회 및 설정
-        ContOrgEntity contOrgEty = contOrgService.getContOrg(new ContOrgSearchDto(cont.getContNo(), null, orgNo));
+        TContOrg contOrgEty = contOrgService.getContOrg(new ContOrgSearchDto(contMst.getContNo(), null, orgNo));
         VdUtil.ec(VdUtil.isEmpty(contOrgEty) || VdUtil.isNotEqual(contOrgEty.getContOrgStsCd(), EnumCont.ContOrgSts.NORMAL)
                 , ErrorCode.BIZ_ERR_001034, "계약 기관이 아님");
         VdUtil.notEqualEc(contOrgEty.getSaveCanYn(), "Y", ErrorCode.BIZ_ERR_001055, "적립 불가 기관");
 
-        ContBrchEntity contBrchEty = contBrchService.getContBrch(new ContOrgSearchDto(cont.getContNo(), null, orgNo, brchNo));
+        TContBrch contBrchEty = this.contBrchService.getContBrch(new ContOrgSearchDto(contMst.getContNo(), null, orgNo, brchNo));
         if(VdUtil.isNotEmpty(contBrchEty) && VdUtil.isEqual(contBrchEty.getContBrchStsCd(), EnumCont.ContOrgSts.NORMAL)){
             SubContMstEntity subContEty = subContService.getSubContMst(new ContSearchDto(contBrchEty.getContNo(), contBrchEty.getContSeq()));
-            CommUtil.objectCopy(subContEty, cont);
+            CommUtil.objectCopy(subContEty, contMst);
             localLimit = new ContLocalLimitDto();
             CommUtil.objectCopy(contBrchEty, localLimit);
             localLimit.setLocalGbCd(EnumOrg.LocalGb.BRCH);
@@ -104,7 +113,7 @@ public class PtUtilService {
             // 계약지점 테이블에 없으면 계약기관 테이블 체크
             if(VdUtil.isNotEmpty(contOrgEty) && VdUtil.isEqual(contOrgEty.getContOrgStsCd(), EnumCont.ContOrgSts.NORMAL)){
                 SubContMstEntity subContEty = subContService.getSubContMst(new ContSearchDto(contOrgEty.getContNo(), contOrgEty.getContSeq()));
-                CommUtil.objectCopy(subContEty, cont);
+                CommUtil.objectCopy(subContEty, contMst);
                 localLimit = new ContLocalLimitDto();
                 CommUtil.objectCopy(contOrgEty, localLimit);
                 localLimit.setLocalGbCd(EnumOrg.LocalGb.ORG);
@@ -113,7 +122,7 @@ public class PtUtilService {
             }
         }
 
-        ComUtil.objectCopy(cont, contRealDto);
+        ComUtil.objectCopy(contMst, contRealDto);
         // contRealDto.setCont(cont);
 
         contRealDto.setContLocalLimit(localLimit);
@@ -156,10 +165,10 @@ public class PtUtilService {
     /*
         지점정보 조회
      */
-    public BrchMstEntity checkBrch(BasePtReqDto req){
-        BrchMstEntity brch = null;
+    public TBrchMst checkBrch(BasePtReqDto req){
+        TBrchMst brch = null;
         if(VdUtil.isNotEmpty(req.getOrgCd()) && VdUtil.isNotEmpty(req.getBrchCd())){
-            brch = brchService.getBrchMstWec(new OrgSearchDto(req.getOrgCd(), req.getBrchCd()));
+            brch = this.brchService.getBrchMstWec(new OrgSearchDto(req.getOrgCd(), req.getBrchCd()));
             VdUtil.notEqualEc(brch.getBrchStsCd(), EnumOrg.BrchSts.NORMAL, ErrorCode.BIZ_ERR_001020, "지점상태 정상 아님");
         }
 
